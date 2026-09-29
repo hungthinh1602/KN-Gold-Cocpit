@@ -6,7 +6,7 @@ net session >nul 2>&1 || (powershell -NoProfile -Command "Start-Process -FilePat
 cd /d "%~dp0.."
 
 echo [1/6] Node.js ...
-set "PATH=%ProgramFiles%\nodejs;%PATH%"
+set "PATH=%CD%\tools\node;%ProgramFiles%\nodejs;%PATH%"
 where node >nul 2>&1 || powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cai-node.ps1"
 where node >nul 2>&1 || (echo LOI: chua cai duoc Node.js - chup man hinh gui Claude. & pause & exit /b 1)
 node -v

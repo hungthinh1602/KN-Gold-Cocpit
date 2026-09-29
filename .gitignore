@@ -6,3 +6,4 @@ server/data/
 __pycache__/
 server/scripts/parity/*.json
 *.tsbuildinfo
+tools/
