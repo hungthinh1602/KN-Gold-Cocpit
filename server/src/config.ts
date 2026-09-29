@@ -32,7 +32,7 @@ export const config = {
   bridgeUrl: process.env.BRIDGE_URL ?? "http://127.0.0.1:8790",
   /** Thời gian chờ tối đa mỗi lần gọi bridge (ms). */
   bridgeTimeoutMs: Number(process.env.BRIDGE_TIMEOUT_MS ?? 40_000),
-  /** Mở thêm cổng 80 chỉ để nhận webhook TradingView (TradingView chỉ bắn 80/443). */
+  /** Mở thêm cổng 80 chỉ để nhận webhook TradingView (TradingView chỉ bắn 80/443). 0 = không mở. */
   webhookPort: Number(process.env.WEBHOOK_PORT ?? 80),
   dataDir,
   webPassword: () => process.env.GOLD_WEB_PASS?.trim() || readSecret("web_password.txt"),

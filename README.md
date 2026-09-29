@@ -60,7 +60,7 @@ npm run dev:web                  # cửa sổ 3: web dev có hot-reload (5173) �
 | `MT5_PATH` | tự dò | đường dẫn terminal64.exe nếu không tự dò được |
 | `DATA_DIR` | server/data | thư mục file khóa + dữ liệu |
 | `GOLD_WEB_PASS` | (file web_password.txt) | có mật khẩu → mở Internet + bắt đăng nhập + mở cổng webhook |
-| `WEBHOOK_PORT` | 80 | cổng riêng nhận webhook TradingView (chỉ khi có mật khẩu + token) |
+| `WEBHOOK_PORT` | 80 | cổng riêng nhận webhook TradingView (chỉ khi có mật khẩu + token; 0 = tắt) |
 
 ## API
 
@@ -84,4 +84,5 @@ npm run dev:web                  # cửa sổ 3: web dev có hot-reload (5173) �
    (`py scripts/parity/py_dump.py` rồi `npx tsx scripts/parity/compare.ts` trong thư mục server)
 4. ✅ Giao diện React đầy đủ: tab Vĩ mô, tab AI phân tích (lớp biểu đồ, Lệnh Live, khung phiên…)
    — giống bản cũ, cùng khoá localStorage (page, aitf, ailens, ailayers, loper, losrc, goldTf)
-5. Triển khai VPS (Node chạy nền tự khởi động), đổi từ bản Python sang
+5. Triển khai VPS: thư mục `deploy/` — xem `deploy/HUONG-DAN-VPS.txt`
+   (CAI-DAT-VPS → chạy song song 8788 → CHUYEN-SANG-NODE nhận 8787 + 80; QUAY-LAI-PYTHON để lùi lại)

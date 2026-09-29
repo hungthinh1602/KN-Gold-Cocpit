@@ -1,0 +1,38 @@
+BUỒNG LÁI VÀNG BẢN MỚI (React + Node.js) TRÊN VPS 36.50.134.246
+================================================================
+
+Bản mới chạy SONG SONG với bản Python cũ cho tới khi anh thấy ổn:
+  - Bản cũ (Python): http://36.50.134.246:8787 + cổng 80 nhận webhook TradingView — GIỮ NGUYÊN
+  - Bản mới (Node):  http://36.50.134.246:8788 — dùng chung MT5 GTC + mật khẩu web cũ
+
+A. CÀI LẦN ĐẦU
+  1. Copy file buong-lai-vang.zip (Desktop laptop) sang VPS qua Remote Desktop.
+  2. Giải nén ra C:\buong-lai-vang  (đúng là phải có C:\buong-lai-vang\deploy\CAI-DAT-VPS.bat).
+  3. Bấm đúp  C:\buong-lai-vang\deploy\CAI-DAT-VPS.bat  → chọn Yes khi Windows hỏi quyền.
+     Script tự: cài Node.js (từ nodejs.org), cài gói + build, chép mật khẩu web / token webhook /
+     khoá AI / lịch sử lệnh từ bản cũ, mở cổng 8788, cho tự chạy khi đăng nhập VPS, rồi chạy luôn.
+     (Mất vài phút. Nếu hỏi đường dẫn bản cũ → gõ thư mục có gold_dashboard.py, VD C:\Gold-Dashboard)
+  4. Mở http://36.50.134.246:8788 trên điện thoại/laptop, đăng nhập bằng mật khẩu web cũ.
+
+  Sẽ có 2 cửa sổ thu nhỏ "BLV-Bridge" (cầu nối MT5) và "BLV-Server" — ĐỪNG đóng.
+  Trong lúc chạy song song: lệnh từ TradingView vẫn về bản cũ; bản mới hiện lệnh MT5 + lịch sử đã chép.
+
+B. CHUYỂN HẲN SANG BẢN MỚI (khi anh thấy 8788 chạy đúng)
+  Bấm đúp  deploy\CHUYEN-SANG-NODE.bat
+    → tắt bản Python + bỏ tự chạy của nó, lấy lịch sử Lệnh Live mới nhất,
+      bản mới nhận cổng 8787 + cổng 80.
+  Địa chỉ web, địa chỉ webhook TradingView, ai_push.py trên laptop: KHÔNG phải đổi gì.
+
+C. QUAY LẠI BẢN CŨ (nếu có trục trặc)
+  Bấm đúp  deploy\QUAY-LAI-PYTHON.bat  → bản cũ lấy lại 8787 + 80 (kèm lịch sử lệnh mới),
+  bản mới về lại 8788.
+
+D. HẰNG NGÀY
+  - Chạy lại bản mới:  deploy\CHAY.bat      - Dừng bản mới:  deploy\DUNG.bat
+  - Cập nhật code: giải nén zip mới ĐÈ LÊN C:\buong-lai-vang (thư mục server\data giữ nguyên)
+    rồi chạy  deploy\CAP-NHAT.bat
+  - Ngắt Remote Desktop bằng dấu X (KHÔNG Sign out) để MT5 + web vẫn chạy.
+  - MT5 GTC (TK 220216454) phải luôn mở và đăng nhập. Nếu MT5 bị kẹt, cầu nối tự khởi động lại.
+
+Dữ liệu + khoá nằm ở C:\buong-lai-vang\server\data (web_password.txt, tv_webhook_token.txt,
+ai_push_key.txt, orders.json, cau-hinh.env = cổng đang dùng). Không gửi các file này cho ai.

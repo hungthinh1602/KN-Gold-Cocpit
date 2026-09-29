@@ -40,7 +40,8 @@ app.listen(config.port, isPublic ? "0.0.0.0" : "127.0.0.1", () => {
 });
 
 // Cổng 80 chỉ để nhận webhook TradingView (TradingView chỉ bắn 80/443).
-if (isPublic && config.tvToken()) {
+// WEBHOOK_PORT=0 → không mở (VPS lúc chạy song song: bản Python cũ còn giữ cổng 80).
+if (isPublic && config.tvToken() && config.webhookPort > 0) {
   const hook = express();
   hook.use(webhookRouter);
   hook.get("/", (_req, res) => res.json({ ok: true, service: "Buong Lai Vang webhook" }));

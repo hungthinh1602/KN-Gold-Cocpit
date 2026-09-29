@@ -1,5 +1,6 @@
 @echo off
 chcp 65001 >nul
+title BLV-Bridge
 rem Chay cau noi MT5 va TU BAT LAI neu no thoat (vd MT5 ket -> bridge tu thoat de lam moi).
 cd /d "%~dp0"
 :loop
