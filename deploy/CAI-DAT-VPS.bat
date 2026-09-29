@@ -5,6 +5,13 @@ rem Chay SONG SONG voi ban Python cu: ban moi o cong 8788, ban cu giu 8787 + con
 net session >nul 2>&1 || (powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs" & exit /b)
 cd /d "%~dp0.."
 
+rem Can ~1.5 GB trong (Node + goi npm + build) o o chua du an va o TEMP
+powershell -NoProfile -Command "$ok=$true; foreach($d in @((Get-Location).Drive.Name, $env:TEMP.Substring(0,1)) | Select-Object -Unique){ $f=(Get-PSDrive $d).Free/1GB; Write-Host ('O {0}: trong {1:N1} GB' -f $d,$f); if($f -lt 1.5){$ok=$false} }; if(-not $ok){exit 1}"
+if errorlevel 1 (
+  echo LOI: o dia gan day - can trong it nhat 1.5 GB. Chay deploy\KIEM-TRA-O-DIA.bat, chup man hinh gui Claude.
+  pause & exit /b 1
+)
+
 echo [1/6] Node.js ...
 set "PATH=%CD%\tools\node;%ProgramFiles%\nodejs;%PATH%"
 where node >nul 2>&1 || powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cai-node.ps1"
