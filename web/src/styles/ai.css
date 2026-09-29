@@ -1,0 +1,75 @@
+/* ===== Tab AI phân tích ===== */
+.page-ai .up { color: #16a34a; } .page-ai .dn { color: #dc2626; }
+
+/* bố cục: cột chính + Lệnh Live 340px; màn hẹp: chart → Lệnh Live → các khung còn lại */
+.page-ai .ai-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.page-ai .ai-main { min-width: 0; display: flex; flex-direction: column; }
+.page-ai .ai-main > section, .page-ai .ai-side { margin-bottom: 16px; min-width: 0; }
+@media (max-width: 980px) {
+  .page-ai .ai-grid { display: flex; flex-direction: column; gap: 0; align-items: stretch; }
+  .page-ai .ai-main { display: contents; }
+  .page-ai .ai-chartsec { order: 1; } .page-ai .ai-side { order: 2; } .page-ai .ai-main > section:not(.ai-chartsec) { order: 3; }
+}
+.page-ai .mtop { flex-wrap: wrap; gap: 6px; }
+
+/* dòng giá + chọn khung */
+.page-ai .ai-pxline { font-size: .8rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+.page-ai .ai-pxline b { color: var(--text); font-size: 1.05rem; }
+.page-ai .ai-note { font-size: .76rem; color: var(--dim); margin-top: 2px; }
+.page-ai .ai-z { font-family: "IBM Plex Mono", monospace; color: var(--dim); font-size: .82rem; }
+.page-ai .pill { display: inline-block; font-size: .68rem; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); vertical-align: middle; }
+.page-ai .pill.up { color: #16a34a; } .page-ai .pill.dn { color: #dc2626; } .page-ai .pill.sw { color: #d97706; }
+
+/* nút lớp biểu đồ */
+.page-ai .ai-layers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.page-ai .ai-layers button { font: inherit; font-size: .74rem; font-weight: 600; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--dim); cursor: pointer; }
+.page-ai .ai-layers button[aria-pressed="true"] { color: #0a0d13; background: var(--gold); border-color: var(--gold); }
+.page-ai .ai-sdopts { margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--border); }
+.page-ai .ai-sdopts button { font-size: .7rem; padding: 3px 9px; }
+.page-ai .ai-sdsep { font-size: .7rem; color: var(--dim); align-self: center; margin-left: 6px; }
+
+/* chart + lớp phủ */
+.page-ai .ai-chartwrap { position: relative; margin-top: 10px; }
+.page-ai .ai-chart { height: 380px; width: 100%; }
+.page-ai .ai-ov { position: absolute; left: 0; top: 0; pointer-events: none; }
+
+/* cấu trúc + mô hình trường phái */
+.page-ai .ai-structbox { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); font-size: .82rem; line-height: 1.9; }
+.page-ai .ai-schoolbox { margin-top: 8px; display: grid; gap: 8px; }
+.page-ai .sch { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--surface-2); font-size: .8rem; line-height: 1.55; }
+.page-ai .sch-h { font-weight: 700; margin-bottom: 2px; }
+.page-ai .sch-h.bull { color: #16a34a; } .page-ai .sch-h.bear { color: #dc2626; }
+.page-ai .sch-st { color: var(--dim); } .page-ai .sch-st.ok { color: var(--text); }
+.page-ai .sch-w { margin-top: 4px; font-weight: 600; color: var(--gold); }
+.page-ai .sch-todo { margin-top: 4px; padding: 6px 8px; border-radius: 7px; background: var(--surface); color: var(--text); font-weight: 500; }
+.page-ai .sch-badge { font-size: .7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--text); margin-left: 6px; white-space: nowrap; }
+.page-ai .sch.st-ready { border-color: #d97706; }
+.page-ai .sch.st-active, .page-ai .sch.st-running { border-color: #16a34a; }
+.page-ai .sch.st-done { border-color: #3b82f6; }
+.page-ai .sch.st-fail { border-color: #dc2626; opacity: .8; }
+
+/* Cung / Cầu */
+.zwrap { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 560px) { .zwrap { grid-template-columns: 1fr 1fr; } }
+.zcol { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.zlab { font-size: .78rem; font-weight: 600; margin-bottom: 8px; }
+.zlab.sell { color: var(--down); } .zlab.buy { color: var(--up); }
+.zrow { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-top: 1px dashed var(--border); font-family: "IBM Plex Mono", monospace; }
+.zrow:first-of-type { border-top: 0; }
+.zpx { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.zd { font-size: .78rem; color: var(--dim); }
+.znone { color: var(--dim); font-size: .85rem; }
+
+/* SMC/ICT/CRT, mô hình giá, bài phân tích */
+.page-ai .ai-text { font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
+.page-ai .ai-text.pre { white-space: pre-wrap; }
+.page-ai .ai-pat { padding: 6px 0; border-bottom: 1px dashed var(--border); }
+.page-ai .ai-formation-box { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); font-size: .92rem; line-height: 1.45; }
+.page-ai .ai-formation-box.bull { border-left: 4px solid #16a34a; }
+.page-ai .ai-formation-box.bear { border-left: 4px solid #dc2626; }
+.page-ai .ai-formation-box.neutral { border-left: 4px solid #d97706; }
+.page-ai .ai-badge { font-size: .72rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+.page-ai .ai-badge.cl { color: #16a34a; border-color: #16a34a; }
+.page-ai .ai-badge.au { color: var(--dim); }
+.page-ai .ai-btn { flex: 0 0 auto; padding: 8px 14px; font-family: "Archivo", sans-serif; font-weight: 700; font-size: .85rem; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 8px; cursor: pointer; }
+.page-ai .ai-btn.sm { padding: 4px 10px; font-size: .72rem; }

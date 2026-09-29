@@ -1,0 +1,59 @@
+/* ===== Nền tảng: màu, chữ, khung trang, tiêu đề, thanh phiên, tab, thẻ dùng chung ===== */
+:root {
+  --bg: #0a0d13; --surface: #141a26; --surface-2: #1c2432; --border: #2a323f; --text: #e9ecf2;
+  --dim: #8b93a4; --gold: #f0c674; --up: #37d399; --down: #f6736b; --neutral: #fbbf24; --shadow: rgba(0, 0, 0, .45);
+  --tr: #5a2320; --tm: #4d4023; --tg: #1f4c39;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 22px 16px 60px; }
+
+/* tiêu đề */
+.hd { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+.dot { width: 11px; height: 11px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(240, 198, 116, .22); flex: none; }
+.hdtitle { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; font-family: "Archivo", sans-serif; font-weight: 800; }
+.brandline { font-size: 1.15rem; letter-spacing: -.01em; line-height: 1.02; text-transform: uppercase; color: var(--gold); }
+.hdsep { color: var(--dim); }
+.hdname { font-size: 1.15rem; color: var(--text); }
+
+/* thanh phiên giao dịch */
+.sess { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px 10px; margin-bottom: 12px; }
+.sess-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .76rem; margin-bottom: 4px; }
+.sess-now { font-weight: 700; font-variant-numeric: tabular-nums; }
+.sess-st { color: var(--dim); }
+.sess-st b { color: var(--up); }
+.sess-grid { display: grid; grid-template-columns: 64px 1fr; gap: 6px; align-items: end; }
+.sess-names { display: flex; flex-direction: column; gap: 3px; font-size: .66rem; color: var(--dim); line-height: 10px; }
+.sess-names div { height: 10px; }
+.sess-track { position: relative; }
+.sess-ticks { display: flex; justify-content: space-between; font-size: .58rem; color: var(--dim); margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+.sess-rows { display: flex; flex-direction: column; gap: 3px; }
+.sess-row { position: relative; height: 10px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.sess-bar { position: absolute; top: 0; bottom: 0; border-radius: 3px; opacity: .45; }
+.sess-bar.on { opacity: 1; }
+.sess-mark { position: absolute; top: 14px; bottom: 0; width: 2px; background: var(--gold); border-radius: 1px; box-shadow: 0 0 6px var(--gold); }
+
+/* tab */
+.tabs { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; padding: 4px; margin-bottom: 18px; }
+.tab { flex: 1; font-family: "Archivo", sans-serif; font-weight: 700; font-size: .9rem; border: 0; background: transparent; color: var(--dim); padding: 10px; border-radius: 8px; cursor: pointer; letter-spacing: .02em; }
+.tab:hover { color: var(--text); }
+.tab[aria-pressed="true"] { background: var(--surface); color: var(--gold); box-shadow: 0 1px 4px var(--shadow); }
+
+/* thẻ lớn dùng chung */
+.master { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 8px 26px var(--shadow); margin-bottom: 22px; }
+.mtop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.eyebrow { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+.verdict { font-family: "Archivo", sans-serif; font-weight: 800; font-size: clamp(1.35rem, 5.5vw, 1.9rem); letter-spacing: -.02em; margin: 2px 0 16px; }
+
+/* nhóm nút chọn 1 */
+.tfsel { display: flex; flex-wrap: wrap; max-width: 100%; gap: 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; }
+@media (max-width: 560px) { .tfsel { gap: 2px; } .tfsel button { padding: 5px 8px !important; } }
+.tfsel button { font-family: "IBM Plex Mono", monospace; font-size: .72rem; font-weight: 600; border: 0; background: transparent; color: var(--dim); padding: 5px 11px; border-radius: 6px; cursor: pointer; }
+.tfsel button:hover { color: var(--text); }
+.tfsel button[aria-pressed="true"] { background: var(--surface); color: var(--gold); }
+
+.up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--neutral); }
+.err { color: var(--down); }
+.foot { margin-top: 22px; font-size: .75rem; color: var(--dim); text-align: center; line-height: 1.7; }
+.foot b { color: var(--text); }

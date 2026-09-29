@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+.env
+server/data/
+__pycache__/
+server/scripts/parity/*.json
+*.tsbuildinfo

@@ -1,0 +1,34 @@
+/* ===== Khung Lệnh Live ===== */
+.lo-panel { display: flex; flex-direction: column; }
+.lo-live { font-size: .72rem; color: var(--dim); }
+.lo-sel { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lo-sel .tfsel button { padding: 4px 8px; font-size: .7rem; }
+.lo-mt5 { margin-top: 6px; font-size: .72rem; color: var(--dim); line-height: 1.4; }
+.lo-mt5 b { color: var(--text); }
+.lo-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0; }
+.lo-st { background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 6px 4px; text-align: center; }
+.lo-st b { display: block; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.lo-st span { font-size: .66rem; color: var(--dim); }
+.lo-list { display: flex; flex-direction: column; gap: 12px; }
+.lo-card { border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface-2);
+  cursor: pointer; font-size: .8rem; box-shadow: 0 4px 14px var(--shadow); overflow-wrap: anywhere; }
+.lo-card.buy { border-left-color: #16a34a; } .lo-card.sell { border-left-color: #dc2626; }
+.lo-card.sel { outline: 2px solid var(--gold); }
+.lo-card.done { opacity: .72; }
+.lo-r1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.lo-r2 { margin-top: 5px; padding: 4px 8px; border-radius: 7px; background: var(--surface); display: inline-block; }
+.lo-side { font-weight: 800; font-size: .72rem; padding: 1px 6px; border-radius: 5px; color: #fff; }
+.lo-side.buy { background: #16a34a; } .lo-side.sell { background: #dc2626; }
+.lo-stat { font-size: .76rem; font-weight: 700; }
+.lo-lv { margin-top: 4px; color: var(--dim); font-variant-numeric: tabular-nums; line-height: 1.45; }
+.lo-lv b { color: var(--text); }
+.lo-r3 { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.lo-pip { font-weight: 800; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.lo-ms { display: flex; gap: 4px; flex-wrap: wrap; }
+.lo-ms i { font-style: normal; font-size: .66rem; padding: 1px 5px; border-radius: 999px; border: 1px solid var(--border); color: var(--dim); }
+.lo-ms i.on { border-color: #16a34a; color: #16a34a; font-weight: 700; }
+.lo-ev { margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 5px; font-size: .72rem; color: var(--dim); line-height: 1.5; }
+.lo-tag { font-size: .62rem; padding: 0 5px; border-radius: 4px; background: #7c3aed; color: #fff; margin-left: 4px; }
+.lo-tag.mt5 { background: #0284c7; }
+.lo-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: .7rem; color: var(--dim); }
+.lo-empty { color: var(--dim); font-size: .8rem; padding: 14px 4px; line-height: 1.5; }
