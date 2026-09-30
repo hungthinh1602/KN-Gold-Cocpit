@@ -6,7 +6,9 @@
 import crypto from "node:crypto";
 import type { NextFunction, Request, Response } from "express";
 import { config } from "../config.js";
+import { mongo, sessionCookie } from "../db/mongo.js";
 import { LOGIN_PAGE } from "./loginPage.js";
+import { ACCOUNT_PAGE } from "./accountPage.js";
 
 const COOKIE = "kn_auth";
 const DAYS = 30;
@@ -27,19 +29,29 @@ export function aiKeyOk(req: Request): boolean {
   return Boolean(key) && req.originalUrl.startsWith("/api/ai") && req.get("X-AI-Key") === key;
 }
 
-export function isAuthed(req: Request): boolean {
+export async function isAuthed(req: Request): Promise<boolean> {
   const pw = config.webPassword();
-  return !pw || aiKeyOk(req) || cookieOf(req, COOKIE) === token(pw);
+  if (aiKeyOk(req)) return true;
+  if (!pw && !mongo.configured) return true;
+  if (pw && cookieOf(req, COOKIE) === token(pw)) return true;
+  const accountToken = cookieOf(req, sessionCookie);
+  if (accountToken && await mongo.session(accountToken)) return true;
+  return false;
 }
 
 const loginHtml = (err = "") => LOGIN_PAGE.replace("__ERR__", err ? `<div class="err">${err}</div>` : "");
 
 /** Middleware: chặn khi chưa đăng nhập (API trả 401, trang trả form đăng nhập). */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (isAuthed(req)) return next();
-  if (req.path.startsWith("/api/")) res.status(401).json({ error: "chưa đăng nhập" });
-  else res.type("html").send(loginHtml());
+  void isAuthed(req).then((ok) => {
+    if (ok) return next();
+    if (req.path.startsWith("/api/")) res.status(mongo.configured && !mongo.ready ? 503 : 401).json({ error: mongo.configured && !mongo.ready ? mongo.error : "Chưa đăng nhập" });
+    else if (mongo.configured) res.redirect(302, "/auth");
+    else res.type("html").send(loginHtml());
+  }).catch(next);
 }
+
+export function accountPage(_req: Request, res: Response) { res.type("html").send(ACCOUNT_PAGE); }
 
 /** POST /login — form đăng nhập. Sai mật khẩu chờ 1.5s (chống dò). */
 export async function loginHandler(req: Request, res: Response) {

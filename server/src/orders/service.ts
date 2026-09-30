@@ -9,6 +9,7 @@ import { avgEntry, mt5BarMfe, orderEvent, orderStep } from "./engine.js";
 import { mt5Sync, type Mt5Status } from "./mt5sync.js";
 import { parseSignal } from "./parse.js";
 import { PIP_SIZE, type Order } from "./types.js";
+import { mongo } from "../db/mongo.js";
 
 const FILE = "orders.json";
 const POLL_MS = 2000;
@@ -19,7 +20,10 @@ const orders: Order[] = readJson<Order[]>(FILE, []);
 const mt5Status: Mt5Status = { ok: false, login: null, server: "", company: "", tick: null, off: null, err: null };
 export const webhookStatus: { port80: string | null; last: unknown; err: string | null } = { port80: null, last: null, err: null };
 
-const save = () => writeJson(FILE, orders);
+const save = () => {
+  writeJson(FILE, orders);
+  if (mongo.configured) void mongo.ordersSave(orders as unknown as Record<string, unknown>[]).catch((e) => console.warn(`[mongo] order sync: ${(e as Error).message}`));
+};
 const isActive = (o: Order) => o.state === "pending" || o.state === "open";
 
 /** Nhận 1 tin webhook. Trả thông báo; lỗi thì ném Error. */
@@ -124,7 +128,20 @@ export function startOrders() {
     }
     setTimeout(run, POLL_MS);                              // chạy tuần tự, không chồng vòng
   };
-  run();
+  const bootstrap = async () => {
+    if (!mongo.configured) { run(); return; }
+    try {
+      const stored = await mongo.ordersLoad();
+      if (stored.length) {
+        orders.splice(0, orders.length, ...(stored as unknown as Order[]));
+        writeJson(FILE, orders);
+      } else if (orders.length) {
+        await mongo.ordersSave(orders as unknown as Record<string, unknown>[]);
+      }
+    } catch (e) { console.warn(`[mongo] order restore: ${(e as Error).message}`); }
+    run();
+  };
+  void bootstrap();
 }
 
 /** Dữ liệu cho GET /api/orders (giống bản Python). */
@@ -140,4 +157,5 @@ export function clearTestOrders() {
   orders.length = 0;
   orders.push(...keep);
   save();
+  if (mongo.configured) void mongo.ordersDeleteTest().catch((e) => console.warn(`[mongo] delete test orders: ${(e as Error).message}`));
 }

@@ -50,6 +50,14 @@ npm run dev:server               # cửa sổ 2: server Node (8788)
 npm run dev:web                  # cửa sổ 3: web dev có hot-reload (5173) — hoặc `npm run build -w web` rồi mở 8788
 ```
 
+### MongoDB và tài khoản thành viên
+
+Ứng dụng Node hiện có thể dùng MongoDB Atlas như bản Python cũ. Sao chép `.env.example` thành `.env`, điền `MONGODB_URI` tại máy chạy server rồi khởi động lại. `AI_PUSH_KEY` và `TV_WEBHOOK_TOKEN` là tùy chọn cho hai API tương ứng. Không đưa giá trị bí mật lên Git. Nếu chưa cấu hình URI, dashboard vẫn chạy ở chế độ dev; đăng ký, đăng nhập, quản trị thành viên và thanh toán VIP cần MongoDB. Không có `GOLD_WEB_PASS`, server chỉ lắng nghe localhost.
+
+Database mặc định là `gold_dashboard`. Các collection được tạo tự động khi kết nối: `orders`, `ai_notes`, `ai_notes_archive`, `users`, `sessions`, `vip_payments`, `permissions`, `webhook_configs`, `ib_configs`. Lệnh và ghi chú AI tiếp tục lưu JSON dự phòng trong `server/data/` và đồng bộ lên MongoDB. Tài khoản dùng session cookie `kn_session`; đăng ký tài khoản đầu tiên qua `/auth`, sau đó cấp role quản trị trong MongoDB: `db.users.updateOne({ username: "TEN_DANG_NHAP" }, { $set: { role: "admin" } })`.
+
+Các API tài khoản/VIP đã được chuyển trước: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/logout`, `/api/users`, `/api/vip/*`, `/api/admin/stats`. Giao diện có trang thành viên và trang quản trị; xác nhận giao dịch VIP mới cấp hoặc gia hạn quyền. Giá gói giữ theo bản demo Python: Starter 30 ngày (1.200.000₫), Pro 90 ngày (2.880.000₫), Lifetime (9.990.000₫). Hãy rà soát lại giá và phương thức thanh toán trước khi mở cho người dùng thật.
+
 ## Biến môi trường
 
 | Biến | Mặc định | Ý nghĩa |

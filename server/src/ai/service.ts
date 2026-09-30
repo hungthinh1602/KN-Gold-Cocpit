@@ -12,6 +12,7 @@ import { ANALYZE_TFS, CFG, autoMacro, autoText, build } from "../engines/scan.js
 import { zones } from "../engines/cungcau.js";
 import { analyze as waveAnalyze } from "../engines/wave.js";
 import { analyze as schoolsAnalyze } from "../engines/schools.js";
+import { mongo } from "../db/mongo.js";
 
 const SCAN_EVERY_MS = 300_000;
 const SCAN_TIMEOUT_MS = 180_000;       // 1 lần quét kẹt quá mức này thì bỏ, lần sau quét lại
@@ -81,6 +82,11 @@ const withTimeout = <T>(p: Promise<T>, ms: number) =>
   Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error(`quá ${ms / 1000} giây không phản hồi`)), ms))]);
 
 export function startAiScan() {
+  if (mongo.configured) {
+    void mongo.noteLoad().then((note) => {
+      if (note) writeJson("ai_note.json", note);
+    }).catch((e) => console.warn(`[mongo] AI note restore: ${(e as Error).message}`));
+  }
   const run = async () => {
     try {
       data = await withTimeout(scanOnce(), SCAN_TIMEOUT_MS);

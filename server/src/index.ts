@@ -7,7 +7,9 @@ import compression from "compression";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
-import { loginHandler, requireAuth } from "./auth/auth.js";
+import { accountPage, loginHandler, requireAuth } from "./auth/auth.js";
+import { accountRouter } from "./routes/accounts.js";
+import { mongo } from "./db/mongo.js";
 import { apiRouter } from "./routes/api.js";
 import { marketRouter } from "./routes/market.js";
 import { webhookRouter } from "./routes/webhook.js";
@@ -19,6 +21,9 @@ const app = express();
 app.use(compression());                                        // nén gzip — dữ liệu nến nặng
 
 app.use(webhookRouter);                                        // /webhook (khóa bằng token, trước lớp đăng nhập)
+app.use(express.json({ limit: "200kb" }));
+app.get("/auth", accountPage);
+app.use(accountRouter);                                        // các route tài khoản tự kiểm tra session/role
 app.post("/login", express.urlencoded({ extended: false }), loginHandler);
 app.use(requireAuth);                                          // mọi thứ sau đây cần đăng nhập
 app.use("/api", marketRouter);
@@ -32,6 +37,7 @@ app.get("*", (_req, res) => res.sendFile(path.join(webDist, "index.html")));
 startMacro();
 startOrders();
 startAiScan();
+void mongo.connect();                                          // kết nối MongoDB nếu đã cấu hình
 
 // Có mật khẩu (VPS) → mở cho mọi IP; không có (máy dev) → chỉ máy này.
 const isPublic = Boolean(config.webPassword());

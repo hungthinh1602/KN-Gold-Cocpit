@@ -11,6 +11,7 @@ import { writeJson } from "../lib/store.js";
 import { macro } from "../macro/service.js";
 import { clearTestOrders, ordersPayload } from "../orders/service.js";
 import { aiLive, aiPayload } from "../ai/service.js";
+import { mongo } from "../db/mongo.js";
 
 export const apiRouter = Router();
 
@@ -43,6 +44,8 @@ apiRouter.post("/ai/note", express.json({ limit: "200kb" }), (req, res) => {
     res.status(400).json({ error: "thiếu ai_text" });
     return;
   }
-  writeJson("ai_note.json", { ai_text: aiText, macro: String(req.body?.macro ?? ""), ts: Date.now() / 1000 });
+  const note = { ai_text: aiText, macro: String(req.body?.macro ?? ""), ts: Date.now() / 1000 };
+  writeJson("ai_note.json", note);
+  if (mongo.configured) void mongo.noteSave(note).catch((e) => console.warn(`[mongo] AI note sync: ${(e as Error).message}`));
   res.json({ ok: true });
 });

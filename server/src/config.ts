@@ -35,7 +35,29 @@ export const config = {
   /** Mở thêm cổng 80 chỉ để nhận webhook TradingView (TradingView chỉ bắn 80/443). 0 = không mở. */
   webhookPort: Number(process.env.WEBHOOK_PORT ?? 80),
   dataDir,
-  webPassword: () => process.env.GOLD_WEB_PASS?.trim() || readSecret("web_password.txt"),
-  tvToken: () => readSecret("tv_webhook_token.txt"),
-  aiPushKey: () => readSecret("ai_push_key.txt"),
+  webPassword: () => process.env.GOLD_WEB_PASS?.trim() || readEnv("GOLD_WEB_PASS") || readSecret("web_password.txt"),
+  tvToken: () => process.env.TV_WEBHOOK_TOKEN?.trim() || readEnv("TV_WEBHOOK_TOKEN") || readSecret("tv_webhook_token.txt"),
+  aiPushKey: () => process.env.AI_PUSH_KEY?.trim() || readEnv("AI_PUSH_KEY") || readSecret("ai_push_key.txt"),
+  /** MongoDB Atlas URI. Keep credentials out of tracked files. */
+  mongoUri: () => process.env.MONGODB_URI?.trim() || readEnv("MONGODB_URI") || process.env.MONGO_URI?.trim() || readEnv("MONGO_URI"),
 };
+
+function readEnv(key: string): string {
+  const files = new Set([
+    path.resolve(process.cwd(), ".env"),
+    path.resolve(process.cwd(), "../.env"),
+    path.resolve(process.cwd(), "server/.env"),
+    path.resolve(here, "../.env"),
+    path.resolve(here, "../../.env"),
+    path.resolve(here, "../../../.env"),
+  ]);
+  for (const file of files) {
+    try {
+      for (const line of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
+        const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+        if (match?.[1] === key) return match[2].replace(/^['"]|['"]$/g, "").trim();
+      }
+    } catch { /* optional local env file */ }
+  }
+  return "";
+}
