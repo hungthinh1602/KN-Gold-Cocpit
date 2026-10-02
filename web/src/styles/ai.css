@@ -23,7 +23,7 @@
 /* nút lớp biểu đồ */
 .page-ai .ai-layers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .page-ai .ai-layers button { font: inherit; font-size: .74rem; font-weight: 600; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--dim); cursor: pointer; }
-.page-ai .ai-layers button[aria-pressed="true"] { color: #0a0d13; background: var(--gold); border-color: var(--gold); }
+.page-ai .ai-layers button[aria-pressed="true"] { color: var(--on-gold); background: var(--gold); border-color: var(--gold); }
 .page-ai .ai-sdopts { margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--border); }
 .page-ai .ai-sdopts button { font-size: .7rem; padding: 3px 9px; }
 .page-ai .ai-sdsep { font-size: .7rem; color: var(--dim); align-self: center; margin-left: 6px; }
@@ -73,3 +73,60 @@
 .page-ai .ai-badge.au { color: var(--dim); }
 .page-ai .ai-btn { flex: 0 0 auto; padding: 8px 14px; font-family: "Archivo", sans-serif; font-weight: 700; font-size: .85rem; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 8px; cursor: pointer; }
 .page-ai .ai-btn.sm { padding: 4px 10px; font-size: .72rem; }
+
+/* bài phân tích dàn trang (NarrativeBody) */
+.nv { margin-top: 12px; font-size: .88rem; line-height: 1.55; overflow-wrap: anywhere; }
+.nv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.nv-sec { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.nv-sec.wide { grid-column: 1 / -1; }
+.nv-sec.key { border-color: color-mix(in srgb, var(--gold) 55%, var(--border)); background: color-mix(in srgb, var(--gold) 6%, var(--surface-2)); }
+.nv-sec.plain { grid-column: 1 / -1; background: transparent; border: 0; padding: 0; }
+.nv-h { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.nv-num-badge { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); font-size: .8rem; letter-spacing: 0; }
+.nv-p { margin: 2px 0; }
+.nv-bullet { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; }
+.nv-dot { flex: none; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); transform: translateY(-2px); }
+.nv-sub { padding: 2px 0 2px 14px; color: var(--dim); font-size: .84rem; }
+.nv-sub b { color: var(--text); }
+.nv-arrow { margin-top: 4px; padding: 6px 10px; border-radius: 8px; background: var(--surface); font-weight: 600; }
+.nv-num { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--text); }
+.nv-up { color: #16a34a; } .nv-dn { color: #dc2626; } .nv-sw { color: #d97706; }
+.nv-tf { flex: none; min-width: 38px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: .74rem; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--gold); }
+.nv-trend { display: grid; grid-template-columns: 46px 104px 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px dashed var(--border); }
+.nv-trend:first-of-type { border-top: 0; }
+.nv-pill { justify-self: start; font-size: .72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.nv-pill.up { color: #16a34a; background: rgba(22, 163, 74, .14); } .nv-pill.dn { color: #dc2626; background: rgba(220, 38, 38, .14); } .nv-pill.sw { color: #d97706; background: rgba(217, 119, 6, .14); }
+.nv-struct { font-family: "IBM Plex Mono", monospace; font-size: .74rem; color: var(--dim); }
+.nv-event { color: var(--dim); font-size: .82rem; }
+.nv-levels { font-size: .8rem; color: var(--dim); white-space: nowrap; }
+@media (max-width: 640px) {
+  .nv-trend { grid-template-columns: 46px auto 1fr; row-gap: 2px; }
+  .nv-event, .nv-levels { grid-column: 2 / -1; white-space: normal; }
+}
+.nv-foot { margin-top: 10px; font-size: .72rem; color: var(--dim); font-style: italic; }
+.nv-empty { margin-top: 10px; color: var(--dim); }
+
+/* tiêu đề chính của từng khung (tab AI + Lệnh Live): to, đậm, trắng, vạch vàng phía trước */
+.page-ai .master:not(.ai-chartsec) > .mtop > .eyebrow,
+.page-ai .master:not(.ai-chartsec) > .eyebrow,
+.page-ai .col-toggle.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: "Archivo", sans-serif; font-size: .98rem; font-weight: 800; letter-spacing: .05em; color: var(--text);
+}
+.page-ai .master:not(.ai-chartsec) > .mtop > .eyebrow::before,
+.page-ai .master:not(.ai-chartsec) > .eyebrow::before,
+.page-ai .col-toggle.eyebrow::before {
+  content: ""; flex: none; width: 4px; height: 18px; border-radius: 2px; background: var(--gold);
+}
+.page-ai .col-toggle.eyebrow:hover { color: var(--gold); }
+.page-ai .col-toggle .chev { font-size: .8rem; }
+
+/* chart toàn màn hình (nút ⛶ ở dòng giá) */
+.page-ai .ai-pxline { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fs-btn { flex: none; font: inherit; font-size: .74rem; font-weight: 600; padding: 4px 11px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer; }
+.fs-btn:hover { border-color: var(--gold); color: var(--gold); }
+.page-ai .ai-chartsec.is-full { display: flex; flex-direction: column; width: 100%; height: 100vh; height: 100dvh; margin: 0; border-radius: 0; overflow: auto; }
+.page-ai .ai-chartsec.is-full-fixed { position: fixed; inset: 0; z-index: 1000; }
+.page-ai .ai-chartsec.is-full .ai-chartwrap { flex: 1 1 0; min-height: 55vh; display: flex; flex-direction: column; }
+.page-ai .ai-chartsec.is-full .ai-chart { flex: 1; height: auto; min-height: 0; }

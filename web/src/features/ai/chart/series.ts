@@ -28,7 +28,7 @@ function snapper(cds: Candle[]) {
  * Lệnh đang chọn (có vùng lời/lỗ) — hoặc nếu không chọn: mọi lệnh đang chạy/chờ.
  * Chỉ vẽ trong khoảng thời gian của lệnh (từ lúc nhận tới lúc đóng). `off` = giờ server MT5 − giờ thật.
  */
-export function addOrderSeries(chart: IChartApi, cds: Candle[], orders: Order[], selectedId: string | null, off: number): AnySeries[] {
+export function addOrderSeries(chart: IChartApi, cds: Candle[], orders: Order[], selectedId: string | null, off: number, pendingWord = "chờ"): AnySeries[] {
   if (!cds.length) return [];
   const out: AnySeries[] = [];
   const snap = snapper(cds);
@@ -78,7 +78,7 @@ export function addOrderSeries(chart: IChartApi, cds: Candle[], orders: Order[],
   if (sel) draw(sel, "");
   else {
     for (const o of orders) {
-      if (o.state === "open" || o.state === "pending") draw(o, o.side + (o.state === "pending" ? " chờ " : " "));
+      if (o.state === "open" || o.state === "pending") draw(o, o.side + (o.state === "pending" ? ` ${pendingWord} ` : " "));
     }
   }
   return out;

@@ -1,6 +1,7 @@
 /** Thẻ 1 lệnh: chiều, chỉ báo, trạng thái, Entry/SL/TP, pip + $, mốc 50p/100p/TP. Bấm để chọn & vẽ lên chart. */
 import type { Order } from "../../api/types";
 import { vnTime } from "../../lib/format";
+import { useT } from "../../i18n/lang";
 
 const f2 = (x: number | null | undefined) => (x == null ? "—" : Number(x).toFixed(2));
 
@@ -11,6 +12,7 @@ function statusColor(o: Order) {
 }
 
 export function OrderCard({ o, selected, onClick }: { o: Order; selected: boolean; onClick: () => void }) {
+  const t = useT();
   const buy = o.side === "BUY";
   const done = o.state === "closed" || o.state === "cancelled";
   const slHit = o.state === "closed" && o.status === "SL";
@@ -36,7 +38,7 @@ export function OrderCard({ o, selected, onClick }: { o: Order; selected: boolea
       </div>
       <div className="lo-r3">
         {pip == null
-          ? <span className="lo-pip" style={{ color: "var(--dim)" }}>{o.state === "pending" ? "chờ khớp" : ""}</span>
+          ? <span className="lo-pip" style={{ color: "var(--dim)" }}>{o.state === "pending" ? t("chờ khớp", "awaiting fill") : ""}</span>
           : <span className={"lo-pip " + (pip >= 0 ? "up" : "dn")}>{(pip > 0 ? "+" : "") + pip.toFixed(1)} pip</span>}
         {showProfit && (
           <span className={o.profit! >= 0 ? "up" : "dn"} style={{ fontWeight: 700 }}>
@@ -50,7 +52,7 @@ export function OrderCard({ o, selected, onClick }: { o: Order; selected: boolea
         </span>
       </div>
       <div className="lo-lv" style={{ fontSize: ".68rem" }}>
-        {vnTime(o.recv_ts)}{o.mfe ? ` · lời tối đa ${o.mfe.toFixed(0)} pip` : ""}
+        {vnTime(o.recv_ts)}{o.mfe ? ` · ${t("lời tối đa", "max profit")} ${o.mfe.toFixed(0)} pip` : ""}
       </div>
       {selected && (
         <div className="lo-ev">

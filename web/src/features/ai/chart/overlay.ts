@@ -9,6 +9,8 @@ export interface Painter {
   tx: (t: number) => number | null;   // thời gian (giờ server) → x
   Y: (p: number) => number | null;    // giá → y
   W: number;                          // bề rộng vùng vẽ (không tính trục giá)
+  light?: boolean;                    // nền sáng → các màu xám nhạt đậm hơn cho dễ nhìn
+  en?: boolean;                       // nhãn tiếng Anh (Demand/Supply)
 }
 
 const FONT = "600 10px 'IBM Plex Mono',monospace";
@@ -63,7 +65,7 @@ export function drawZones(p: Painter, sets: { tf: Timeframe | null; zones: Zone[
       const ym = p.Y(z.mid);
       if (ym != null) line(p, x1, ym, x2, ym, stroke, 1, [4, 3]);
       ctx.fillStyle = `rgba(${col},${z.mitigated ? 0.55 : 1})`;
-      ctx.fillText((S.tf ? TF_SHORT[S.tf] + " · " : "") + (z.bias === 1 ? "Cầu" : "Cung") + (z.ok ? " OK" : ""), x1 + 3, z.bias === 1 ? top + ht + 11 : top - 3);
+      ctx.fillText((S.tf ? TF_SHORT[S.tf] + " · " : "") + (z.bias === 1 ? (p.en ? "Demand" : "Cầu") : (p.en ? "Supply" : "Cung")) + (z.ok ? " OK" : ""), x1 + 3, z.bias === 1 ? top + ht + 11 : top - 3);
       if (S.tf) {
         ctx.lineWidth = 2;
         ctx.strokeStyle = stroke;
@@ -169,9 +171,9 @@ export function drawWave(p: Painter, WV: Wave, on: (k: string) => boolean) {
     const xs = Math.max(0, (E.strongX != null ? tx(E.strongX) : null) || 0);
     const xw = Math.max(0, (E.weakX != null ? tx(E.weakX) : null) || 0);
     const ys = Y(E.strong), yw = E.weak != null ? Y(E.weak) : null;
-    line(p, xs, ys, right, ys, "#8a8f9c", 2);
-    line(p, xw, yw, right, yw, "#c3c6ce", 1, [5, 4]);
-    ctx.fillStyle = "#b2b5be";
+    line(p, xs, ys, right, ys, p.light ? "#4b5563" : "#8a8f9c", 2);
+    line(p, xw, yw, right, yw, p.light ? "#6b7280" : "#c3c6ce", 1, [5, 4]);
+    ctx.fillStyle = p.light ? "#374151" : "#b2b5be";
     if (ys != null) ctx.fillText((up ? "Strong Low " : "Strong High ") + E.strong.toFixed(2), Math.min(right, W) - 140, ys + (up ? 12 : -4));
     if (yw != null && E.weak != null) ctx.fillText((up ? "Weak High " : "Weak Low ") + E.weak.toFixed(2), Math.min(right, W) - 140, yw + (up ? -4 : 12));
   }

@@ -8,6 +8,8 @@ import { api } from "../../../api/client";
 import type { Candle, Formation, OrdersData, Schools, Timeframe, Wave, Zone, ZoneSet } from "../../../api/types";
 import { TF_ORDER } from "../../../api/types";
 import { usePolling } from "../../../hooks/usePolling";
+import { useTheme, type Theme } from "../../../hooks/useTheme";
+import { useLang } from "../../../i18n/lang";
 import { activeSignature } from "../../orders/orders";
 import { SCHOOL_LAYERS, SD_HTF, waveOn, type Layers } from "../layers";
 import { drawSchool, drawWave, drawZones, type Painter } from "./overlay";
@@ -30,7 +32,12 @@ export interface AiChartProps {
   onPrice: (bid: number) => void;
 }
 
-const toBar = (k: Candle) => ({ time: k.t as UTCTimestamp, open: k.o, high: k.h, low: k.l, close: k.c });
+const CHART_COLORS: Record<Theme, { text: string; grid: string; border: string }> = {
+  dark: { text: "#9aa4b2", grid: "rgba(255,255,255,.05)", border: "rgba(255,255,255,.1)" },
+  light: { text: "#5d6678", grid: "rgba(15,23,42,.06)", border: "rgba(15,23,42,.15)" },
+};
+
+const toBar =(k: Candle) => ({ time: k.t as UTCTimestamp, open: k.o, high: k.h, low: k.l, close: k.c });
 
 export function AiChart(props: AiChartProps) {
   const { tf, candles, formation, layers, orders, selectedOrder } = props;
@@ -43,6 +50,8 @@ export function AiChart(props: AiChartProps) {
   const lastTRef = useRef(0);
   const propsRef = useRef(props);
   propsRef.current = props;
+  const [theme] = useTheme();
+  const [lang] = useLang();
 
   // ---------------------------------------------------------------- lớp phủ canvas
   const drawOverlay = useCallback(() => {
@@ -79,7 +88,7 @@ export function AiChart(props: AiChartProps) {
       }
       return ts.logicalToCoordinate(idx as never);
     };
-    const p: Painter = { ctx, tx, Y: (price) => cs.priceToCoordinate(price), W: ts.width() };
+    const p: Painter = { ctx, tx, Y: (price) => cs.priceToCoordinate(price), W: ts.width(), light: document.documentElement.dataset.theme === "light", en: document.documentElement.lang === "en" };
     const L = P.layers;
 
     if (L.struct && P.wave) drawWave(p, P.wave, (k) => waveOn(L, k));
@@ -101,10 +110,8 @@ export function AiChart(props: AiChartProps) {
   useEffect(() => {
     const chart = createChart(boxRef.current!, {
       autoSize: true,
-      layout: { background: { color: "transparent" }, textColor: "#9aa4b2" },
-      grid: { vertLines: { color: "rgba(255,255,255,.05)" }, horzLines: { color: "rgba(255,255,255,.05)" } },
-      timeScale: { timeVisible: true, secondsVisible: false, borderColor: "rgba(255,255,255,.1)", rightOffset: RIGHT_GAP },
-      rightPriceScale: { borderColor: "rgba(255,255,255,.1)" },
+      layout: { background: { color: "transparent" } },
+      timeScale: { timeVisible: true, secondsVisible: false, rightOffset: RIGHT_GAP },
       crosshair: { mode: 0 },
     });
     seriesRef.current = chart.addCandlestickSeries({
@@ -123,6 +130,17 @@ export function AiChart(props: AiChartProps) {
       shownTfRef.current = null;
     };
   }, [drawOverlay]);
+
+  // ---------------------------------------------------------------- màu chữ/lưới/viền theo nền Tối/Sáng
+  useEffect(() => {
+    const c = CHART_COLORS[theme];
+    chartRef.current?.applyOptions({
+      layout: { textColor: c.text },
+      grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
+      timeScale: { borderColor: c.border },
+      rightPriceScale: { borderColor: c.border },
+    });
+  }, [theme, drawOverlay]);
 
   // ---------------------------------------------------------------- nạp nến (giữ vùng đang xem nếu cùng khung)
   useEffect(() => {
@@ -146,13 +164,13 @@ export function AiChart(props: AiChartProps) {
     const P = propsRef.current;
     const extra: ISeriesApi<SeriesType>[] = [];
     try {
-      if (layers.order && P.orders) extra.push(...addOrderSeries(chart, candles, P.orders.orders, selectedOrder, P.orders.mt5?.off ?? 0));
+      if (layers.order && P.orders) extra.push(...addOrderSeries(chart, candles, P.orders.orders, selectedOrder, P.orders.mt5?.off ?? 0, lang === "en" ? "pending" : "chờ"));
       if (layers.pattern) extra.push(...addPatternSeries(chart, formation));
     } catch {
       /* dữ liệu vẽ lỗi → bỏ qua lớp này */
     }
     extrasRef.current = extra;
-  }, [candles, formation, layers.order, layers.pattern, orderSig, selSig, selectedOrder]);
+  }, [candles, formation, layers.order, layers.pattern, orderSig, selSig, selectedOrder, lang]);
 
   // ---------------------------------------------------------------- vẽ lại lớp phủ sau mỗi lần đổi dữ liệu/lớp
   useEffect(() => {

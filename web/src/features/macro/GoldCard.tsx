@@ -5,12 +5,14 @@ import { useStoredState } from "../../hooks/useStoredState";
 import { Change, History } from "../../components/common/Change";
 import { Segmented } from "../../components/common/Segmented";
 import { Sparkline } from "../../components/common/Sparkline";
+import { useT } from "../../i18n/lang";
 
 const TF_OPTIONS: { value: GoldTfKey; label: string }[] = [
   { value: "4h", label: "4H" }, { value: "d1", label: "D1" }, { value: "w1", label: "W1" },
 ];
 
 export function GoldCard({ gold }: { gold: Gold | null }) {
+  const t = useT();
   const [tf, setTf] = useStoredState<GoldTfKey>("goldTf", "d1");
   const ok = gold && gold.value != null;
   const spark = (gold?.tf?.[tf] ?? gold?.tf?.d1)?.spark ?? gold?.spark ?? null;
@@ -19,7 +21,7 @@ export function GoldCard({ gold }: { gold: Gold | null }) {
   return (
     <section className="gold">
       <div>
-        <div className="lab">Giá vàng · Spot (XAUUSD)</div>
+        <div className="lab">{t("Giá vàng · Spot (XAUUSD)", "Gold price · Spot (XAUUSD)")}</div>
         <div className="px">{ok ? fmt(gold.value, 2) : "—"}</div>
         <div className="hist">{ok && <History p3={gold.pct3} p5={gold.pct5} pM={gold.pctM} />}</div>
       </div>

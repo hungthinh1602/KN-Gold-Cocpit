@@ -5,23 +5,23 @@ export type Layers = Record<string, boolean | undefined>;
 
 /** Nút lớp chính. */
 export const MAIN_LAYERS = [
-  { key: "struct", label: "🧱 Cấu trúc" },
-  { key: "sd", label: "📦 Cung/Cầu" },
-  { key: "smcM", label: "💧 SMC" },
-  { key: "ictM", label: "⏱️ ICT" },
-  { key: "crtM", label: "🕯️ CRT" },
-  { key: "pattern", label: "📐 Mô hình giá" },
-  { key: "order", label: "⚡ Lệnh Live" },
+  { key: "struct", label: "🧱 Cấu trúc", en: "🧱 Structure" },
+  { key: "sd", label: "📦 Cung/Cầu", en: "📦 Supply/Demand" },
+  { key: "smcM", label: "💧 SMC", en: "💧 SMC" },
+  { key: "ictM", label: "⏱️ ICT", en: "⏱️ ICT" },
+  { key: "crtM", label: "🕯️ CRT", en: "🕯️ CRT" },
+  { key: "pattern", label: "📐 Mô hình giá", en: "📐 Chart patterns" },
+  { key: "order", label: "⚡ Lệnh Live", en: "⚡ Live orders" },
 ] as const;
 
 /** Tuỳ chọn phụ của Cấu trúc sóng — MẶC ĐỊNH BẬT (chỉ tắt khi = false). */
 export const WAVE_OPTS = [
-  { key: "wvE", label: "Sóng chính" },
-  { key: "wvI", label: "Nội bộ" },
-  { key: "wvBos", label: "BOS/CHoCH" },
-  { key: "wvIdm", label: "IDM/Sweep" },
-  { key: "wvSW", label: "Strong/Weak" },
-  { key: "wvPD", label: "Premium/Discount" },
+  { key: "wvE", label: "Sóng chính", en: "Main swing" },
+  { key: "wvI", label: "Nội bộ", en: "Internal" },
+  { key: "wvBos", label: "BOS/CHoCH", en: "BOS/CHoCH" },
+  { key: "wvIdm", label: "IDM/Sweep", en: "IDM/Sweep" },
+  { key: "wvSW", label: "Strong/Weak", en: "Strong/Weak" },
+  { key: "wvPD", label: "Premium/Discount", en: "Premium/Discount" },
 ] as const;
 
 /** Cung/Cầu khung lớn hơn vẽ chồng lên khung đang xem. */

@@ -10,6 +10,8 @@ import { TIMEFRAMES, type AiData, type Candle, type OrdersData, type Timeframe }
 import { px2 } from "../../lib/format";
 import { usePolling } from "../../hooks/usePolling";
 import { useStoredState } from "../../hooks/useStoredState";
+import { useT } from "../../i18n/lang";
+import { useFullscreen } from "../../hooks/useFullscreen";
 import { Segmented } from "../../components/common/Segmented";
 import { OrdersPanel } from "../orders/OrdersPanel";
 import { AiChart } from "./chart/AiChart";
@@ -29,6 +31,8 @@ const TF_OPTIONS = TIMEFRAMES.map((x) => ({ value: x.tf, label: x.label }));
 const NO_CANDLES: Candle[] = [];
 
 export function AiPage() {
+  const t = useT();
+  const fs = useFullscreen<HTMLElement>();
   const [tfPref, setTf] = useStoredState<Timeframe>("aitf", "H1");
   const [layers, setLayers] = useStoredState<Layers>("ailayers", {}, true);
   const [data, setData] = useState<AiData | null>(null);
@@ -42,7 +46,7 @@ export function AiPage() {
       setData(await api.ai(tfPref));
       setLoadErr("");
     } catch (e) {
-      setLoadErr("Lỗi tải /api/ai: " + (e as Error).message);
+      setLoadErr(t("Lỗi tải /api/ai: ", "Failed to load /api/ai: ") + (e as Error).message);
     }
   }, AI_MS, true, [tfPref]);
 
@@ -64,23 +68,29 @@ export function AiPage() {
     <div className="page-ai">
       <div className="ai-grid">
         <div className="ai-main">
-          <section className="master ai-chartsec">
+          <section ref={fs.ref} className={"master ai-chartsec" + (fs.full ? " is-full" : "") + (fs.overlay ? " is-full-fixed" : "")}>
             <div className="ai-pxline">
-              Giá <b>{px2(price)}</b> · <span>{ok ? data.killzone : ""}</span> ·{" "}
-              <span>{ok && data.updated ? "quét " + data.updated.replace(" (VN)", "").slice(11) : ""}</span>
+              <span>
+                {t("Giá", "Price")} <b>{px2(price)}</b> · <span>{ok ? data.killzone : ""}</span> ·{" "}
+                <span>{ok && data.updated ? t("quét ", "scanned ") + data.updated.replace(" (VN)", "").slice(11) : ""}</span>
+              </span>
+              <button type="button" className="fs-btn" onClick={fs.toggle}
+                title={fs.full ? t("Thoát toàn màn hình (Esc)", "Exit full screen (Esc)") : t("Xem chart toàn màn hình", "View chart full screen")}>
+                {fs.full ? t("✕ Thoát", "✕ Exit") : t("⛶ Toàn màn hình", "⛶ Full screen")}
+              </button>
             </div>
             <div className="ai-note">
               {loadErr}
-              {data?.error && <>Chưa có dữ liệu quét — app tự quét MT5 mỗi 5 phút, cần MT5 đang mở và đăng nhập.<div className="ai-note">{data.error}</div></>}
+              {data?.error && <>{t("Chưa có dữ liệu quét — app tự quét MT5 mỗi 5 phút, cần MT5 đang mở và đăng nhập.", "No scan data yet — the app scans MT5 every 5 minutes; MT5 must be open and logged in.")}<div className="ai-note">{data.error}</div></>}
               {ok && data.age_sec > STALE_SEC && (
                 <div className="ai-note dn">
-                  ⚠️ Dữ liệu phân tích đã cũ {Math.round(data.age_sec / 60)} phút (quét lúc {data.updated}) — bộ quét đang tự thử lại.
+                  ⚠️ {t(`Dữ liệu phân tích đã cũ ${Math.round(data.age_sec / 60)} phút (quét lúc ${data.updated}) — bộ quét đang tự thử lại.`, `Analysis data is ${Math.round(data.age_sec / 60)} min old (scanned ${data.updated}) — the scanner is retrying.`)}
                 </div>
               )}
-              {ok && data.scan_err && <div className="ai-note">⚠️ Lần quét gần nhất lỗi: {data.scan_err} (đang hiện bản cũ)</div>}
+              {ok && data.scan_err && <div className="ai-note">⚠️ {t("Lần quét gần nhất lỗi:", "Last scan failed:")} {data.scan_err} {t("(đang hiện bản cũ)", "(showing previous data)")}</div>}
             </div>
             <div className="mtop" style={{ marginTop: 8 }}>
-              <span className="eyebrow">🕒 Chọn khung</span>
+              <span className="eyebrow">{t("🕒 Chọn khung", "🕒 Timeframe")}</span>
               <Segmented options={TF_OPTIONS} value={tf} onChange={(v) => { setTf(v); setLivePrice(null); }} />
             </div>
             <LayerBar layers={layers} tf={tf} onChange={setLayers} />

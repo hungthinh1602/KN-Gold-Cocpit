@@ -9,7 +9,7 @@ export const SESSIONS: SessionDef[] = [
   { name: "New York", tz: "America/New_York", open: 8, close: 17, color: "#4cc421" },
 ];
 
-const WD: Record<string, string> = { Mon: "T2", Tue: "T3", Wed: "T4", Thu: "T5", Fri: "T6", Sat: "T7", Sun: "CN" };
+const WD: Record<string, string> = { Mon: "T2", Tue: "T3", Wed: "T4", Thu: "T5", Fri: "T6", Sat: "T7", Sun: "CN" };   // thứ kiểu Việt; tiếng Anh giữ Mon/Tue…
 
 function tzParts(tz: string, d: Date) {
   const p = new Intl.DateTimeFormat("en-US", {
@@ -27,7 +27,7 @@ function tzOffset(tz: string, d: Date) {
 
 export interface SessionRow { def: SessionDef; start: number; end: number; on: boolean }
 
-export function sessionState(now = new Date()) {
+export function sessionState(now = new Date(), lang: "vi" | "en" = "vi") {
   const vn = tzParts("Asia/Ho_Chi_Minh", now);
   const vnMin = vn.h * 60 + vn.mi;
   const ny = tzParts("America/New_York", now);
@@ -43,5 +43,5 @@ export function sessionState(now = new Date()) {
   });
   const open = rows.filter((r) => r.on).map((r) => r.def.name);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return { rows, open, weekend, vnMin, clock: `${pad(vn.h)}:${pad(vn.mi)} ${WD[vn.wd] ?? ""}` };
+  return { rows, open, weekend, vnMin, clock: `${pad(vn.h)}:${pad(vn.mi)} ${lang === "en" ? vn.wd : WD[vn.wd] ?? ""}` };
 }
