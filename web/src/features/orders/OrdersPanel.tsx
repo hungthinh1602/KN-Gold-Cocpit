@@ -1,4 +1,4 @@
-/** Khung ⚡ Lệnh Live bên cạnh chart: trạng thái MT5, bộ lọc, danh sách lệnh, thống kê. */
+/** Khung ⚡ Lệnh Live bên cạnh chart: trạng thái MT5, lọc theo kỳ (Hôm nay · 3 ngày · 7 ngày · Tất cả), danh sách lệnh, thống kê. */
 import { useState } from "react";
 import type { OrdersData } from "../../api/types";
 import { api } from "../../api/client";
@@ -6,13 +6,11 @@ import { useStoredState } from "../../hooks/useStoredState";
 import { Segmented } from "../../components/common/Segmented";
 import { OrderCard } from "./OrderCard";
 import { useLang, useT, locale } from "../../i18n/lang";
-import { bySource, isActive, orderStats, sortOrders, type Period, type Source } from "./orders";
+import { inPeriod, isActive, orderStats, sortOrders, type Period } from "./orders";
 
 const PERIODS: { value: Period; label: string; en: string }[] = [
-  { value: "day", label: "Hôm nay", en: "Today" }, { value: "week", label: "7 ngày", en: "7 days" }, { value: "all", label: "Tất cả", en: "All" },
-];
-const SOURCES: { value: Source; label: string }[] = [
-  { value: "all", label: "ALL" }, { value: "tv", label: "TV" }, { value: "mt5", label: "MT5" },
+  { value: "day", label: "Hôm nay", en: "Today" }, { value: "3d", label: "3 ngày", en: "3 days" },
+  { value: "week", label: "7 ngày", en: "7 days" }, { value: "all", label: "Tất cả", en: "All" },
 ];
 const OLD_SHOWN = 15;   // số lệnh đã đóng hiện sẵn (còn lại bấm "Xem thêm")
 
@@ -43,14 +41,13 @@ export function OrdersPanel({ data, selected, onSelect, onCleared }: {
   const t = useT();
   const [lang] = useLang();
   const [per, setPer] = useStoredState<Period>("loper", "day");
-  const [src, setSrc] = useStoredState<Source>("losrc", "all");
   const [showAll, setShowAll] = useState(false);
 
   const all = data?.orders ?? [];
-  const list = sortOrders(all.filter(bySource(src)));
+  const list = sortOrders(all.filter(inPeriod(per)));
   const limit = list.filter(isActive).length + OLD_SHOWN;
   const shown = showAll ? list : list.slice(0, limit);
-  const st = orderStats(all, per, src);
+  const st = orderStats(all, per);
 
   const clearTest = async () => {
     if (!window.confirm(t("Xóa tất cả lệnh test?", "Delete all test orders?"))) return;
@@ -68,14 +65,15 @@ export function OrdersPanel({ data, selected, onSelect, onCleared }: {
       <div className="lo-mt5"><Mt5Line m={data?.mt5} /></div>
       <div className="lo-sel">
         <Segmented options={PERIODS.map((p) => ({ value: p.value, label: lang === "en" ? p.en : p.label }))} value={per} onChange={setPer} />
-        <Segmented options={SOURCES} value={src} onChange={setSrc} />
       </div>
       <div className="lo-list" style={{ marginTop: 10 }}>
         {shown.length ? shown.map((o) => (
           <OrderCard key={o.id} o={o} selected={selected === o.id} onClick={() => onSelect(selected === o.id ? null : o.id)} onNoteSaved={onCleared} />
         )) : (
           <div className="lo-empty">
-            {t("Chưa có lệnh. Tạo alert TradingView bắn webhook về VPS, lệnh sẽ hiện ở đây và được theo dõi tự động bằng giá MT5 GTC.", "No orders yet. Create a TradingView alert that sends a webhook to the VPS — orders appear here and are tracked automatically with MT5 GTC prices.")}
+            {all.length
+              ? t("Không có lệnh trong khoảng thời gian này.", "No orders in this period.")
+              : t("Chưa có lệnh. Tạo alert TradingView bắn webhook về VPS, lệnh sẽ hiện ở đây và được theo dõi tự động bằng giá MT5 GTC.", "No orders yet. Create a TradingView alert that sends a webhook to the VPS — orders appear here and are tracked automatically with MT5 GTC prices.")}
           </div>
         )}
       </div>

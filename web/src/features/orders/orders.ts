@@ -1,12 +1,10 @@
-/** Logic Lệnh Live phía giao diện: lọc theo nguồn/kỳ, sắp xếp, thống kê. */
+/** Logic Lệnh Live phía giao diện: lọc theo kỳ, sắp xếp, thống kê. */
 import type { Order } from "../../api/types";
 
-export type Period = "day" | "week" | "all";
-export type Source = "all" | "tv" | "mt5";
+/** Kỳ xem: hôm nay · 3 ngày · 7 ngày (tính theo ngày giờ Việt Nam, gồm cả hôm nay) · tất cả. */
+export type Period = "day" | "3d" | "week" | "all";
 
 export const isActive = (o: Order) => o.state === "open" || o.state === "pending";
-
-export const bySource = (src: Source) => (o: Order) => src === "all" || (src === "mt5") === (o.src === "mt5");
 
 /** Đang chạy lên trước, rồi mới nhất trước. */
 export const sortOrders = (list: Order[]) =>
@@ -16,19 +14,25 @@ export const sortOrders = (list: Order[]) =>
 export const activeSignature = (list: Order[]) =>
   list.filter(isActive).map((o) => o.id + o.state + o.sl + o.tps.join() + o.entries.join()).join("|");
 
-function periodStart(per: Period): number {
+/** Mốc bắt đầu của kỳ (epoch giây): 0h giờ VN của hôm nay / 2 ngày trước / 6 ngày trước. */
+export function periodStart(per: Period): number {
+  if (per === "all") return 0;
   const now = Date.now() / 1000;
-  if (per === "week") return now - 7 * 86400;
-  if (per === "day") {
-    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
-    return now - (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds());   // 0h hôm nay giờ VN
-  }
-  return 0;
+  const vn = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+  const todayStart = now - (vn.getHours() * 3600 + vn.getMinutes() * 60 + vn.getSeconds());   // 0h hôm nay giờ VN
+  const back = per === "3d" ? 2 : per === "week" ? 6 : 0;
+  return todayStart - back * 86400;
 }
 
-export function orderStats(list: Order[], per: Period, src: Source) {
+/** Lệnh thuộc kỳ đang xem (theo lúc nhận lệnh). Lệnh đang chạy / chờ khớp luôn hiện để không bị sót. */
+export const inPeriod = (per: Period) => {
   const from = periodStart(per);
-  const os = list.filter((o) => !o.test && o.recv_ts >= from && bySource(src)(o));
+  return (o: Order) => o.recv_ts >= from || isActive(o);
+};
+
+export function orderStats(list: Order[], per: Period) {
+  const from = periodStart(per);
+  const os = list.filter((o) => !o.test && o.recv_ts >= from);
   let win = 0, loss = 0, cancel = 0, running = 0, pips = 0;
   for (const o of os) {
     if (o.result === "win") win++;
