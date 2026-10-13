@@ -11,14 +11,14 @@ export const MAIN_LAYERS = [
   { key: "ictM", label: "⏱️ ICT", en: "⏱️ ICT" },
   { key: "crtM", label: "🕯️ CRT", en: "🕯️ CRT" },
   { key: "pattern", label: "📐 Mô hình giá", en: "📐 Chart patterns" },
-  { key: "order", label: "⚡ Lệnh Live", en: "⚡ Live orders" },
   { key: "sess", label: "🌏 Phiên", en: "🌏 Sessions" },
+  { key: "order", label: "⚡ Lệnh Live", en: "⚡ Live orders" },
   { key: "alerts", label: "🔔 Cảnh báo giá", en: "🔔 Price alerts" },
 ] as const;
 
 /** Tuỳ chọn phụ của lớp Lệnh Live — MẶC ĐỊNH BẬT. */
 export const ORDER_OPTS = [
-  { key: "ordHist", label: "▲▼ Lịch sử lệnh đã đóng", en: "▲▼ Closed order history" },
+  { key: "ordHist", label: "Lịch sử lệnh", en: "Order history" },
 ] as const;
 
 /** Tuỳ chọn phụ của lớp Phiên — MẶC ĐỊNH BẬT (chỉ tắt khi = false). */

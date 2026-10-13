@@ -34,19 +34,19 @@ export function LayerBar({ layers, tf, price, onChange }: {
           ))}
         </div>
       )}
-      {layers.order && (
-        <div className="ai-layers ai-sdopts">
-          {ORDER_OPTS.map((b) => (
-            <button key={b.key} type="button" aria-pressed={waveOn(layers, b.key)} onClick={() => set(b.key, !waveOn(layers, b.key))}>{en ? b.en : b.label}</button>
-          ))}
-        </div>
-      )}
       {layers.sess && (
         <div className="ai-layers ai-sdopts">
           {SESS_OPTS.map((b) => (
             <button key={b.key} type="button" aria-pressed={waveOn(layers, b.key)} onClick={() => set(b.key, !waveOn(layers, b.key))}>{en ? b.en : b.label}</button>
           ))}
           {cur > TF_ORDER.indexOf("H4") && <span className="ai-sdsep">{en ? "(only on M1–H4)" : "(chỉ hiện ở M1–H4)"}</span>}
+        </div>
+      )}
+      {layers.order && (
+        <div className="ai-layers ai-sdopts">
+          {ORDER_OPTS.map((b) => (
+            <button key={b.key} type="button" aria-pressed={waveOn(layers, b.key)} onClick={() => set(b.key, !waveOn(layers, b.key))}>{en ? b.en : b.label}</button>
+          ))}
         </div>
       )}
       {layers.alerts && <AlertRow price={price} tf={tf} />}

@@ -1,6 +1,6 @@
 /**
  * Chọn khung + tổng quan xu hướng 9 khung: mỗi nút có ▲ xanh (tăng) / ▼ đỏ (giảm) theo Cấu trúc sóng chính
- * của khung đó, kèm dòng đồng thuận (vd "6/9 khung GIẢM"). Bấm nút = chuyển chart sang khung đó.
+ * của khung đó. Bấm nút = chuyển chart sang khung đó.
  */
 import { TIMEFRAMES, type Timeframe, type Wave } from "../../api/types";
 import { useT } from "../../i18n/lang";
@@ -10,10 +10,6 @@ export function TfSelector({ tf, onChange, wave }: {
 }) {
   const t = useT();
   const trendOf = (x: Timeframe) => wave?.[x]?.E?.trend ?? 0;
-  const ups = TIMEFRAMES.filter((x) => trendOf(x.tf) === 1).length;
-  const downs = TIMEFRAMES.filter((x) => trendOf(x.tf) === -1).length;
-  const known = ups + downs;
-  const lead = ups > downs ? { n: ups, cls: "up", w: t("TĂNG", "UP") } : downs > ups ? { n: downs, cls: "dn", w: t("GIẢM", "DOWN") } : null;
 
   return (
     <div className="tf-sel-wrap">
@@ -30,11 +26,6 @@ export function TfSelector({ tf, onChange, wave }: {
           );
         })}
       </span>
-      {known > 0 && (
-        <span className="tf-consensus">
-          {lead ? <><b className={lead.cls}>{lead.n}/{TIMEFRAMES.length}</b> {t("khung", "TFs")} <b className={lead.cls}>{lead.w}</b></> : t("Các khung đang chia đôi", "Timeframes are split")}
-        </span>
-      )}
     </div>
   );
 }
