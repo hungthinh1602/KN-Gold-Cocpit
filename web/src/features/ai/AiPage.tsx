@@ -89,7 +89,7 @@ export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; re
               <span className="eyebrow">{t("🕒 Chọn khung", "🕒 Timeframe")}</span>
               <Segmented options={TF_OPTIONS} value={tf} onChange={(v) => { setTf(v); setLivePrice(null); }} />
             </div>
-            <LayerBar layers={layers} tf={tf} onChange={setLayers} />
+            <LayerBar layers={layers} tf={tf} price={price} onChange={setLayers} />
             <AiChart
               tf={tf}
               candles={td?.candles ?? NO_CANDLES}

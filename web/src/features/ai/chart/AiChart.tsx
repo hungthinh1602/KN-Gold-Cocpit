@@ -12,7 +12,9 @@ import { useTheme, type Theme } from "../../../hooks/useTheme";
 import { useLang } from "../../../i18n/lang";
 import { activeSignature } from "../../orders/orders";
 import { SCHOOL_LAYERS, SD_HTF, waveOn, type Layers } from "../layers";
-import { drawSchool, drawWave, drawZones, type Painter } from "./overlay";
+import { drawSchool, drawSessions, drawWave, drawZones, type Painter } from "./overlay";
+import { usePriceAlerts } from "../../alerts/priceAlerts";
+import type { IPriceLine, LineStyle } from "lightweight-charts";
 import { addOrderSeries, addPatternSeries } from "./series";
 
 const LIVE_MS = 2000;
@@ -52,6 +54,8 @@ export function AiChart(props: AiChartProps) {
   propsRef.current = props;
   const [theme] = useTheme();
   const [lang] = useLang();
+  const priceAlerts = usePriceAlerts();
+  const alertLinesRef = useRef<IPriceLine[]>([]);
 
   // ---------------------------------------------------------------- lớp phủ canvas
   const drawOverlay = useCallback(() => {
@@ -91,6 +95,17 @@ export function AiChart(props: AiChartProps) {
     const p: Painter = { ctx, tx, Y: (price) => cs.priceToCoordinate(price), W: ts.width(), light: document.documentElement.dataset.theme === "light", en: document.documentElement.lang === "en" };
     const L = P.layers;
 
+    if (L.sess) {
+      const idx = TF_ORDER.indexOf(P.tf);
+      const vr = ts.getVisibleLogicalRange();
+      const i0 = Math.min(n - 1, Math.max(0, Math.floor(vr?.from ?? 0)));
+      const i1 = Math.max(i0, Math.min(n - 1, Math.ceil(vr?.to ?? n - 1)));
+      drawSessions(p, cds, step, {
+        bg: waveOn(L, "sessBg"), asia: waveOn(L, "sessAsia"), pd: waveOn(L, "sessPD") && idx <= TF_ORDER.indexOf("H4"),
+        intraday: idx <= TF_ORDER.indexOf("H1"), off: P.orders?.mt5?.off ?? 10800,
+        from: cds[i0].t, to: cds[i1].t + step,
+      });
+    }
     if (L.struct && P.wave) drawWave(p, P.wave, (k) => waveOn(L, k));
     for (const s of SCHOOL_LAYERS) {
       const m = P.schools?.[s.key];
@@ -171,6 +186,16 @@ export function AiChart(props: AiChartProps) {
     }
     extrasRef.current = extra;
   }, [candles, formation, layers.order, layers.pattern, orderSig, selSig, selectedOrder, lang]);
+
+  // ---------------------------------------------------------------- đường cảnh báo giá (mức tự đặt) — luôn hiện khi có
+  useEffect(() => {
+    const cs = seriesRef.current;
+    if (!cs) return;
+    for (const l of alertLinesRef.current) cs.removePriceLine(l);
+    alertLinesRef.current = priceAlerts.map((a) => cs.createPriceLine({
+      price: a.price, color: "#eab308", lineWidth: 1, lineStyle: 2 as LineStyle, axisLabelVisible: true, title: "🔔",
+    }));
+  }, [priceAlerts]);
 
   // ---------------------------------------------------------------- vẽ lại lớp phủ sau mỗi lần đổi dữ liệu/lớp
   useEffect(() => {

@@ -46,4 +46,6 @@ export interface Order {
   status: string;
   status_text: string;
   _st?: [string, string];            // trạng thái chính của lệnh MT5 (giữ khi có sự kiện sửa SL/TP)
+  note?: string;                     // nhật ký: ghi chú của người dùng (lý do vào lệnh, bài học)
+  note_ts?: number;                  // lúc sửa ghi chú (giờ thật, epoch giây)
 }

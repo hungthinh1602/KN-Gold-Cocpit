@@ -152,6 +152,22 @@ export function ordersPayload() {
   };
 }
 
+/** Nhật ký: ghi chú cho 1 lệnh (rỗng = xoá). Trả false nếu không có lệnh. */
+export function setOrderNote(id: string, note: string): boolean {
+  const o = orders.find((x) => x.id === id);
+  if (!o) return false;
+  const text = note.trim().slice(0, 2000);
+  if (text) {
+    o.note = text;
+    o.note_ts = Date.now() / 1000;
+  } else {
+    delete o.note;
+    delete o.note_ts;
+  }
+  save();
+  return true;
+}
+
 export function clearTestOrders() {
   const keep = orders.filter((o) => !o.test);
   orders.length = 0;

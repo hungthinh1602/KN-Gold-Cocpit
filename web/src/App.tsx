@@ -9,6 +9,7 @@ import { SessionBar } from "./components/layout/SessionBar";
 import { NewsCountdown } from "./components/layout/NewsCountdown";
 import { Toasts } from "./features/alerts/AlertUI";
 import { useOrderAlerts } from "./features/alerts/useOrderAlerts";
+import { usePriceWatch } from "./features/alerts/usePriceWatch";
 import { MacroPage } from "./features/macro/MacroPage";
 import { AiPage } from "./features/ai/AiPage";
 import { AccountPage } from "./features/account/AccountPage";
@@ -47,7 +48,8 @@ export function App() {
 
   const loadOrders = async () => setOrders(await api.orders());
   usePolling(loadOrders, ORDERS_MS);
-  const alerts = useOrderAlerts(orders);
+  useOrderAlerts(orders);
+  usePriceWatch();
 
   return (
     <div className="wrap">
@@ -66,7 +68,7 @@ export function App() {
       <p className="foot">
         <span>{t("Cập nhật lúc", "Updated at")} <b>{macro?.updated || "—"}</b></span> · {netErr ? <span className="err">{t("Mất kết nối tới app.", "Lost connection to the app.")}</span> : macro?.error && <span className="err">⚠ {macro.error}</span>}
       </p>
-      <Toasts toasts={alerts.toasts} onDismiss={alerts.dismiss} />
+      <Toasts />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 /** Nút 🔔 bật/tắt thông báo (ở tiêu đề) + chồng ô báo góc dưới phải. */
 import { useT } from "../../i18n/lang";
-import { beep, canNotify, useSoundOn } from "./alerts";
-import type { Toast } from "./useOrderAlerts";
+import { beep, canNotify, dismissToast, useSoundOn, useToasts } from "./alerts";
 
 export function AlertToggle() {
   const t = useT();
@@ -19,12 +18,13 @@ export function AlertToggle() {
   );
 }
 
-export function Toasts({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+export function Toasts() {
+  const toasts = useToasts();
   if (!toasts.length) return null;
   return (
     <div className="toasts" aria-live="polite">
       {toasts.map((x) => (
-        <button key={x.id} type="button" className={"toast " + x.tone} onClick={() => onDismiss(x.id)}>
+        <button key={x.id} type="button" className={"toast " + x.tone} onClick={() => dismissToast(x.id)}>
           <b>{x.title}</b>
           <span>{x.body}</span>
         </button>

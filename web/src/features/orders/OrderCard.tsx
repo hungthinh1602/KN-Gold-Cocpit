@@ -2,6 +2,7 @@
 import type { Order } from "../../api/types";
 import { vnTime } from "../../lib/format";
 import { useT } from "../../i18n/lang";
+import { OrderNote } from "./OrderNote";
 
 const f2 = (x: number | null | undefined) => (x == null ? "—" : Number(x).toFixed(2));
 
@@ -11,7 +12,7 @@ function statusColor(o: Order) {
   return "var(--dim)";
 }
 
-export function OrderCard({ o, selected, onClick }: { o: Order; selected: boolean; onClick: () => void }) {
+export function OrderCard({ o, selected, onClick, onNoteSaved }: { o: Order; selected: boolean; onClick: () => void; onNoteSaved: () => void }) {
   const t = useT();
   const buy = o.side === "BUY";
   const done = o.state === "closed" || o.state === "cancelled";
@@ -54,10 +55,14 @@ export function OrderCard({ o, selected, onClick }: { o: Order; selected: boolea
       <div className="lo-lv" style={{ fontSize: ".68rem" }}>
         {vnTime(o.recv_ts)}{o.mfe ? ` · ${t("lời tối đa", "max profit")} ${o.mfe.toFixed(0)} pip` : ""}
       </div>
+      {!selected && o.note && <div className="lo-note-peek">📝 {o.note}</div>}
       {selected && (
-        <div className="lo-ev">
-          {(o.events || []).map((e, i) => <div key={i}>{vnTime(e.ts)} — {e.text}</div>)}
-        </div>
+        <>
+          <div className="lo-ev">
+            {(o.events || []).map((e, i) => <div key={i}>{vnTime(e.ts)} — {e.text}</div>)}
+          </div>
+          <OrderNote key={o.id + (o.note_ts ?? "")} o={o} onSaved={onNoteSaved} />
+        </>
       )}
     </div>
   );

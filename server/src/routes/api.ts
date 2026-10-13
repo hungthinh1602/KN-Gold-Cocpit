@@ -3,14 +3,16 @@
  *   GET  /api/data                 vĩ mô: giá vàng, 5 yếu tố, điểm, lịch kinh tế, tin
  *   GET  /api/orders               Lệnh Live + trạng thái MT5
  *   POST /api/orders/clear-test    xóa lệnh test
+ *   POST /api/orders/note          nhật ký: ghi chú cho 1 lệnh {id, note}
+ *   GET  /api/ai/levels?tf=        vùng/mức của 1 khung cho cảnh báo giá chạm vùng
  *   POST /api/ai/note              Claude đẩy bài phân tích {ai_text, macro} (header X-AI-Key)
  */
 import express, { Router } from "express";
 import { aiKeyOk } from "../auth/auth.js";
 import { writeJson } from "../lib/store.js";
 import { macro } from "../macro/service.js";
-import { clearTestOrders, ordersPayload } from "../orders/service.js";
-import { aiLive, aiPayload } from "../ai/service.js";
+import { clearTestOrders, ordersPayload, setOrderNote } from "../orders/service.js";
+import { aiLevels, aiLive, aiPayload } from "../ai/service.js";
 import { mongo } from "../db/mongo.js";
 
 export const apiRouter = Router();
@@ -23,6 +25,21 @@ apiRouter.post("/orders/clear-test", (_req, res) => {
   clearTestOrders();
   res.json({ ok: true });
 });
+
+apiRouter.post("/orders/note", express.json({ limit: "20kb" }), (req, res) => {
+  const id = String(req.body?.id ?? "");
+  if (!id) {
+    res.status(400).json({ error: "thiếu id lệnh" });
+    return;
+  }
+  if (!setOrderNote(id, String(req.body?.note ?? ""))) {
+    res.status(404).json({ error: "không có lệnh này" });
+    return;
+  }
+  res.json({ ok: true });
+});
+
+apiRouter.get("/ai/levels", (req, res) => res.json(aiLevels(String(req.query.tf ?? "H1").toUpperCase())));
 
 apiRouter.get("/ai/live", async (req, res) => {
   try {

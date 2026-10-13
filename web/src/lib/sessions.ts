@@ -45,3 +45,36 @@ export function sessionState(now = new Date(), lang: "vi" | "en" = "vi") {
   const pad = (n: number) => String(n).padStart(2, "0");
   return { rows, open, weekend, vnMin, clock: `${pad(vn.h)}:${pad(vn.mi)} ${lang === "en" ? vn.wd : WD[vn.wd] ?? ""}` };
 }
+
+/** Giờ địa phương (tz, ngày y-mo-d lúc h:00) → epoch giây UTC (tự tính giờ mùa hè). */
+export function localToUtc(tz: string, y: number, mo: number, d: number, h: number): number {
+  const guess = Date.UTC(y, mo - 1, d, h) / 1000;
+  const off1 = tzOffset(tz, new Date(guess * 1000));
+  const t = guess - off1 * 60;
+  const off2 = tzOffset(tz, new Date(t * 1000));            // sát lúc đổi giờ mùa hè → tính lại
+  return off2 === off1 ? t : guess - off2 * 60;
+}
+
+/** 3 phiên vẽ trên chart (bỏ Sydney cho gọn): Á = Tokyo, Âu = London, Mỹ = New York. */
+export const CHART_SESSIONS = [
+  { key: "asia", vi: "Á", en: "Asia", def: SESSIONS[1] },
+  { key: "london", vi: "Âu", en: "London", def: SESSIONS[2] },
+  { key: "ny", vi: "Mỹ", en: "New York", def: SESSIONS[3] },
+] as const;
+
+/** Khung giờ (epoch giây UTC) các phiên của những ngày trong [fromUtc, toUtc]; bỏ thứ 7, CN. */
+export function sessionWindows(fromUtc: number, toUtc: number) {
+  const out: { key: string; vi: string; en: string; color: string; start: number; end: number }[] = [];
+  for (let day = Math.floor(fromUtc / 86400) - 1; day <= Math.floor(toUtc / 86400) + 1; day++) {
+    const dt = new Date(day * 86400 * 1000);
+    const wd = dt.getUTCDay();
+    if (wd === 0 || wd === 6) continue;
+    const [y, mo, d] = [dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate()];
+    for (const s of CHART_SESSIONS) {
+      const start = localToUtc(s.def.tz, y, mo, d, s.def.open);
+      const end = localToUtc(s.def.tz, y, mo, d, s.def.close);
+      if (end >= fromUtc && start <= toUtc) out.push({ key: s.key, vi: s.vi, en: s.en, color: s.def.color, start, end });
+    }
+  }
+  return out;
+}

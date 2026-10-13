@@ -115,6 +115,7 @@ export interface Order {
   recv_ts: number; state: OrderState; tp_hit: number; pip50: boolean; pip100: boolean;
   mfe: number; cur_pip: number | null; result: "win" | "loss" | "cancel" | null; close_pip: number | null;
   events: OrderEvent[]; status: string; status_text: string;
+  note?: string; note_ts?: number;   // nhật ký lệnh
 }
 
 export interface Mt5Status {

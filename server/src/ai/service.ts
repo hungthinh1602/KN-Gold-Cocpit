@@ -130,6 +130,27 @@ export function aiPayload(tf?: string) {
   return d;
 }
 
+/**
+ * Các mức/vùng của 1 khung cho cảnh báo "giá chạm vùng" (nhẹ — không kèm nến):
+ * vùng Cung/Cầu còn hiệu lực, Strong/Weak của sóng chính, hộp OTE của SMC/ICT/CRT.
+ */
+export function aiLevels(tf: string) {
+  if (!data) return { error: "chưa có dữ liệu quét" };
+  const d = data as Record<string, any>;
+  const zones = ((d.cc?.[tf]?.zones ?? []) as any[]).filter((z) => !z.mitigated)
+    .map((z) => ({ kind: z.bias === 1 ? "demand" : "supply", top: z.top, bottom: z.bottom }));
+  const E = d.wave?.[tf]?.E;
+  const levels = E && E.strong != null ? [
+    { kind: E.trend === 1 ? "strong_low" : "strong_high", price: E.strong },
+    ...(E.weak != null ? [{ kind: E.trend === 1 ? "weak_high" : "weak_low", price: E.weak }] : []),
+  ] : [];
+  const ote: { school: string; top: number; bottom: number }[] = [];
+  for (const [school, m] of Object.entries((d.school?.[tf] ?? {}) as Record<string, any>)) {
+    for (const b of m?.draw?.boxes ?? []) if (b.k === "OTE") ote.push({ school, top: Math.max(b.top, b.bot), bottom: Math.min(b.top, b.bot) });
+  }
+  return { tf, updated: d.updated, zones, levels, ote };
+}
+
 /** 3 nến cuối + giá hiện tại của 1 khung — cho chart chạy trực tiếp. */
 export async function aiLive(tf: string) {
   if (!ANALYZE_TFS.includes(tf as Timeframe)) return { error: "tf không hợp lệ" };

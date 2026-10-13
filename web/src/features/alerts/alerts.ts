@@ -115,3 +115,37 @@ export function systemNotify(title: string, body: string) {
     /* trình duyệt không cho → đã có âm thanh + ô báo trong trang */
   }
 }
+
+// ------------------------------------------------------------------ ô báo trong trang (dùng chung: lệnh, cảnh báo giá, chạm vùng)
+export interface Toast { id: string; tone: Tone; title: string; body: string }
+
+const TOAST_MS = 9000;
+const MAX_TOASTS = 4;
+const toastListeners = new Set<() => void>();
+let toasts: Toast[] = [];
+let toastSeq = 0;
+
+function setToasts(next: Toast[]) {
+  toasts = next;
+  toastListeners.forEach((fn) => fn());
+}
+
+export function dismissToast(id: string) {
+  setToasts(toasts.filter((t) => t.id !== id));
+}
+
+/** Báo 1 việc: ô báo trong trang + thông báo hệ thống (+ âm thanh nếu sound = true). */
+export function notify(tone: Tone, title: string, body: string, sound = true) {
+  const id = `t${++toastSeq}`;
+  setToasts([{ id, tone, title, body }, ...toasts].slice(0, MAX_TOASTS));
+  window.setTimeout(() => dismissToast(id), TOAST_MS);
+  systemNotify(title, body);
+  if (sound) beep(tone);
+}
+
+export function useToasts(): Toast[] {
+  return useSyncExternalStore((fn) => {
+    toastListeners.add(fn);
+    return () => toastListeners.delete(fn);
+  }, () => toasts);
+}

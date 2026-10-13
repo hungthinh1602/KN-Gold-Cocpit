@@ -72,7 +72,7 @@ export function OrdersPanel({ data, selected, onSelect, onCleared }: {
       </div>
       <div className="lo-list" style={{ marginTop: 10 }}>
         {shown.length ? shown.map((o) => (
-          <OrderCard key={o.id} o={o} selected={selected === o.id} onClick={() => onSelect(selected === o.id ? null : o.id)} />
+          <OrderCard key={o.id} o={o} selected={selected === o.id} onClick={() => onSelect(selected === o.id ? null : o.id)} onNoteSaved={onCleared} />
         )) : (
           <div className="lo-empty">
             {t("Chưa có lệnh. Tạo alert TradingView bắn webhook về VPS, lệnh sẽ hiện ở đây và được theo dõi tự động bằng giá MT5 GTC.", "No orders yet. Create a TradingView alert that sends a webhook to the VPS — orders appear here and are tracked automatically with MT5 GTC prices.")}

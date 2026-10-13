@@ -2,7 +2,8 @@
  * Vẽ lớp phủ canvas trên chart: vùng Cung/Cầu, Cấu trúc sóng, thành phần mô hình SMC/ICT/CRT.
  * Hàm thuần — nhận bộ đổi toạ độ (thời gian → x, giá → y) từ AiChart.
  */
-import type { SchoolModel, Timeframe, Wave, Zone } from "../../../api/types";
+import type { Candle, SchoolModel, Timeframe, Wave, Zone } from "../../../api/types";
+import { sessionWindows } from "../../../lib/sessions";
 
 export interface Painter {
   ctx: CanvasRenderingContext2D;
@@ -176,5 +177,89 @@ export function drawWave(p: Painter, WV: Wave, on: (k: string) => boolean) {
     ctx.fillStyle = p.light ? "#374151" : "#b2b5be";
     if (ys != null) ctx.fillText((up ? "Strong Low " : "Strong High ") + E.strong.toFixed(2), Math.min(right, W) - 140, ys + (up ? 12 : -4));
     if (yw != null && E.weak != null) ctx.fillText((up ? "Weak High " : "Weak Low ") + E.weak.toFixed(2), Math.min(right, W) - 140, yw + (up ? -4 : 12));
+  }
+}
+
+// ------------------------------------------------------------------ Phiên Á / Âu / Mỹ + đỉnh/đáy phiên Á + đỉnh/đáy hôm qua
+
+export interface SessionOpts {
+  bg: boolean;          // tô nền 3 phiên (chỉ khung ≤ H1)
+  asia: boolean;        // đỉnh/đáy phiên Á (chỉ khung ≤ H1)
+  pd: boolean;          // đỉnh/đáy ngày hôm trước (khung ≤ H4)
+  intraday: boolean;    // khung ≤ H1
+  off: number;          // giờ server MT5 − giờ thật (giây) — nến tính theo giờ server
+  from: number;         // khoảng thời gian (giờ server) đang hiện trên chart
+  to: number;
+}
+
+/** Vẽ nhãn ở cuối đoạn ngang (bên phải), tự kẹp trong vùng vẽ. */
+function tagRight(p: Painter, s: string, x: number, y: number, col: string) {
+  p.ctx.fillStyle = col;
+  p.ctx.fillText(s, Math.min(x, p.W - 4) - p.ctx.measureText(s).width - 2, y - 3);
+}
+
+export function drawSessions(p: Painter, cds: Candle[], step: number, o: SessionOpts) {
+  const { ctx, tx, Y, W } = p;
+  if (!cds.length) return;
+  ctx.font = FONT;
+  const en = !!p.en;
+
+  if (o.intraday && (o.bg || o.asia)) {
+    const wins = sessionWindows(o.from - o.off, o.to - o.off);
+    if (o.bg) {
+      const h = ctx.canvas.height / (window.devicePixelRatio || 1);
+      for (const w of wins) {
+        const x1 = tx(w.start + o.off), x2 = tx(w.end + o.off);
+        if (x1 == null || x2 == null || x2 < 0 || x1 > W) continue;
+        const a = Math.max(0, x1), b = Math.min(W, x2);
+        ctx.fillStyle = w.color + "12";                       // nền rất nhạt
+        ctx.fillRect(a, 0, b - a, h);
+        ctx.fillStyle = w.color + "cc";
+        ctx.fillRect(a, 0, b - a, 3);                          // vạch màu phiên ở mép trên
+        if (b - a > 26) ctx.fillText(en ? w.en : w.vi, a + 3, 14);
+      }
+    }
+    if (o.asia) {
+      for (const w of wins.filter((x) => x.key === "asia")) {
+        const s = w.start + o.off, e = w.end + o.off;
+        let hi = -Infinity, lo = Infinity;
+        for (const c of cds) if (c.t >= s && c.t < e) { hi = Math.max(hi, c.h); lo = Math.min(lo, c.l); }
+        if (!Number.isFinite(hi)) continue;
+        const ny = wins.find((x) => x.key === "ny" && x.start > w.start && x.start - w.start < 86400);
+        const x1 = tx(e), x2 = tx(ny ? ny.end + o.off : e + 12 * 3600);
+        if (x1 == null || x2 == null || x2 < 0 || x1 > W) continue;
+        for (const [v, lab] of [[hi, en ? "Asia H" : "Á cao"], [lo, en ? "Asia L" : "Á thấp"]] as const) {
+          const y = Y(v);
+          if (y == null) continue;
+          line(p, Math.max(0, x1), y, Math.min(W, x2), y, w.color, 1, [4, 3]);
+          tagRight(p, `${lab} ${v.toFixed(2)}`, x2, y, w.color);
+        }
+      }
+    }
+  }
+
+  if (o.pd) {
+    // ngày giao dịch = ngày theo giờ server MT5 (GTC: 0h server = 17h New York, đúng ngày giao dịch vàng)
+    const days = new Map<number, { hi: number; lo: number; t1: number; t2: number }>();
+    for (const c of cds) {
+      const k = Math.floor(c.t / 86400);
+      const d = days.get(k);
+      if (!d) days.set(k, { hi: c.h, lo: c.l, t1: c.t, t2: c.t });
+      else { d.hi = Math.max(d.hi, c.h); d.lo = Math.min(d.lo, c.l); d.t2 = c.t; }
+    }
+    const keys = [...days.keys()].sort((a, b) => a - b);
+    const lastKey = keys[keys.length - 1];
+    for (let i = 1; i < keys.length; i++) {
+      const prev = days.get(keys[i - 1])!, d = days.get(keys[i])!;
+      if (d.t2 + step < o.from || d.t1 > o.to) continue;
+      const x1 = tx(d.t1), x2 = tx(keys[i] === lastKey ? d.t2 + 20 * step : d.t2 + step);
+      if (x1 == null || x2 == null) continue;
+      for (const [v, lab] of [[prev.hi, "PDH"], [prev.lo, "PDL"]] as const) {
+        const y = Y(v);
+        if (y == null) continue;
+        line(p, Math.max(0, x1), y, Math.min(W, x2), y, "#a78bfa", 1, [6, 3]);
+        tagRight(p, `${lab} ${v.toFixed(2)}`, x2, y, "#a78bfa");
+      }
+    }
   }
 }

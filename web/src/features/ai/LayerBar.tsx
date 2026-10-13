@@ -1,9 +1,12 @@
-/** Hàng nút lớp biểu đồ + tuỳ chọn phụ (sóng, Cung/Cầu khung lớn). */
+/** Hàng nút lớp biểu đồ + tuỳ chọn phụ (sóng, Cung/Cầu khung lớn, phiên, cảnh báo giá). */
 import { TF_ORDER, type Timeframe } from "../../api/types";
-import { MAIN_LAYERS, SD_HTF, WAVE_OPTS, waveOn, type Layers } from "./layers";
+import { MAIN_LAYERS, SD_HTF, SESS_OPTS, WAVE_OPTS, waveOn, type Layers } from "./layers";
 import { useLang } from "../../i18n/lang";
+import { AlertRow } from "./AlertRow";
 
-export function LayerBar({ layers, tf, onChange }: { layers: Layers; tf: Timeframe; onChange: (next: Layers) => void }) {
+export function LayerBar({ layers, tf, price, onChange }: {
+  layers: Layers; tf: Timeframe; price: number | null; onChange: (next: Layers) => void;
+}) {
   const [lang] = useLang();
   const en = lang === "en";
   const set = (k: string, v: boolean) => onChange({ ...layers, [k]: v });
@@ -31,6 +34,15 @@ export function LayerBar({ layers, tf, onChange }: { layers: Layers; tf: Timefra
           ))}
         </div>
       )}
+      {layers.sess && (
+        <div className="ai-layers ai-sdopts">
+          {SESS_OPTS.map((b) => (
+            <button key={b.key} type="button" aria-pressed={waveOn(layers, b.key)} onClick={() => set(b.key, !waveOn(layers, b.key))}>{en ? b.en : b.label}</button>
+          ))}
+          {cur > TF_ORDER.indexOf("H4") && <span className="ai-sdsep">{en ? "(only on M1–H4)" : "(chỉ hiện ở M1–H4)"}</span>}
+        </div>
+      )}
+      {layers.alerts && <AlertRow price={price} tf={tf} />}
     </>
   );
 }

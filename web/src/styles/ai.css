@@ -130,3 +130,13 @@
 .page-ai .ai-chartsec.is-full-fixed { position: fixed; inset: 0; z-index: 1000; }
 .page-ai .ai-chartsec.is-full .ai-chartwrap { flex: 1 1 0; min-height: 55vh; display: flex; flex-direction: column; }
 .page-ai .ai-chartsec.is-full .ai-chart { flex: 1; height: auto; min-height: 0; }
+
+/* lớp 🔔 Cảnh báo giá: ô nhập + các mức đang chờ */
+.page-ai .alert-row { align-items: center; }
+.page-ai .alert-add { display: inline-flex; gap: 4px; }
+.page-ai .alert-add input { width: 104px; font: inherit; font-size: .74rem; font-family: "IBM Plex Mono", monospace; padding: 3px 8px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.page-ai .alert-chip { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-family: "IBM Plex Mono", monospace; font-weight: 600;
+  padding: 2px 4px 2px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold) 60%, var(--border)); color: var(--gold); }
+.page-ai .ai-layers .alert-chip button { padding: 0 6px; border: 0; background: transparent; color: var(--dim); font-size: .7rem; }
+.page-ai .ai-layers .alert-chip button:hover { color: var(--down); }

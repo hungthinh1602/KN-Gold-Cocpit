@@ -12,6 +12,15 @@ export const MAIN_LAYERS = [
   { key: "crtM", label: "🕯️ CRT", en: "🕯️ CRT" },
   { key: "pattern", label: "📐 Mô hình giá", en: "📐 Chart patterns" },
   { key: "order", label: "⚡ Lệnh Live", en: "⚡ Live orders" },
+  { key: "sess", label: "🌏 Phiên", en: "🌏 Sessions" },
+  { key: "alerts", label: "🔔 Cảnh báo giá", en: "🔔 Price alerts" },
+] as const;
+
+/** Tuỳ chọn phụ của lớp Phiên — MẶC ĐỊNH BẬT (chỉ tắt khi = false). */
+export const SESS_OPTS = [
+  { key: "sessBg", label: "Nền phiên Á/Âu/Mỹ", en: "Asia/London/NY shading" },
+  { key: "sessAsia", label: "Đỉnh/đáy phiên Á", en: "Asia high/low" },
+  { key: "sessPD", label: "Đỉnh/đáy hôm qua", en: "Previous day high/low" },
 ] as const;
 
 /** Tuỳ chọn phụ của Cấu trúc sóng — MẶC ĐỊNH BẬT (chỉ tắt khi = false). */
