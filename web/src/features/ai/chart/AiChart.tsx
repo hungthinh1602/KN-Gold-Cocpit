@@ -15,7 +15,7 @@ import { SCHOOL_LAYERS, SD_HTF, waveOn, type Layers } from "../layers";
 import { drawSchool, drawSessions, drawWave, drawZones, type Painter } from "./overlay";
 import { usePriceAlerts } from "../../alerts/priceAlerts";
 import type { IPriceLine, LineStyle } from "lightweight-charts";
-import { addOrderSeries, addPatternSeries } from "./series";
+import { addOrderSeries, addPatternSeries, closedOrderMarkers } from "./series";
 
 const LIVE_MS = 2000;
 const VIEW_BARS = 160;     // khung nhìn mặc định: ~160 nến gần nhất
@@ -196,6 +196,16 @@ export function AiChart(props: AiChartProps) {
       price: a.price, color: "#eab308", lineWidth: 1, lineStyle: 2 as LineStyle, axisLabelVisible: true, title: "🔔",
     }));
   }, [priceAlerts]);
+
+  // ---------------------------------------------------------------- lịch sử lệnh đã đóng: ▲▼ ở nến vào, ● ở nến đóng + kết quả
+  const showHist = !!layers.order && waveOn(layers, "ordHist");
+  const closedSig = (orders?.orders ?? []).filter((o) => o.state === "closed").map((o) => o.id + o.status).join("|");
+  useEffect(() => {
+    const cs = seriesRef.current;
+    if (!cs) return;
+    const P = propsRef.current;
+    cs.setMarkers(showHist && P.orders ? closedOrderMarkers(candles, P.orders.orders, P.orders.mt5?.off ?? 10800, lang === "en") : []);
+  }, [candles, showHist, closedSig, lang]);
 
   // ---------------------------------------------------------------- vẽ lại lớp phủ sau mỗi lần đổi dữ liệu/lớp
   useEffect(() => {

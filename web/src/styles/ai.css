@@ -140,3 +140,11 @@
   padding: 2px 4px 2px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold) 60%, var(--border)); color: var(--gold); }
 .page-ai .ai-layers .alert-chip button { padding: 0 6px; border: 0; background: transparent; color: var(--dim); font-size: .7rem; }
 .page-ai .ai-layers .alert-chip button:hover { color: var(--down); }
+
+/* chọn khung + xu hướng 9 khung (TfSelector) */
+.page-ai .tf-sel-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.page-ai .tf-trend button { display: inline-flex; align-items: center; gap: 3px; }
+.page-ai .tf-trend i { font-style: normal; font-size: .62rem; line-height: 1; }
+.page-ai .tf-trend i.up { color: #16a34a; } .page-ai .tf-trend i.dn { color: #dc2626; } .page-ai .tf-trend i.na { color: var(--dim); }
+.page-ai .tf-consensus { font-size: .72rem; color: var(--dim); }
+@media (max-width: 560px) { .page-ai .tf-sel-wrap { align-items: stretch; } .page-ai .tf-consensus { text-align: right; } }

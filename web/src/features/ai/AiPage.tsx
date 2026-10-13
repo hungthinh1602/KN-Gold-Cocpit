@@ -6,13 +6,13 @@
  */
 import { useState } from "react";
 import { api } from "../../api/client";
-import { TIMEFRAMES, type AiData, type Candle, type OrdersData, type Timeframe } from "../../api/types";
+import type { AiData, Candle, OrdersData, Timeframe } from "../../api/types";
 import { px2 } from "../../lib/format";
 import { usePolling } from "../../hooks/usePolling";
 import { useStoredState } from "../../hooks/useStoredState";
 import { useT } from "../../i18n/lang";
 import { useFullscreen } from "../../hooks/useFullscreen";
-import { Segmented } from "../../components/common/Segmented";
+import { TfSelector } from "./TfSelector";
 import { OrdersPanel } from "../orders/OrdersPanel";
 import { AiChart } from "./chart/AiChart";
 import { LayerBar } from "./LayerBar";
@@ -26,7 +26,6 @@ import { MacroTextPanel, NarrativePanel } from "./panels/TextPanels";
 
 const AI_MS = 60_000;
 const STALE_SEC = 900;
-const TF_OPTIONS = TIMEFRAMES.map((x) => ({ value: x.tf, label: x.label }));
 const NO_CANDLES: Candle[] = [];
 
 export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; reloadOrders: () => Promise<void> }) {
@@ -87,7 +86,7 @@ export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; re
             </div>
             <div className="mtop" style={{ marginTop: 8 }}>
               <span className="eyebrow">{t("🕒 Chọn khung", "🕒 Timeframe")}</span>
-              <Segmented options={TF_OPTIONS} value={tf} onChange={(v) => { setTf(v); setLivePrice(null); }} />
+              <TfSelector tf={tf} wave={ok ? data.wave : undefined} onChange={(v) => { setTf(v); setLivePrice(null); }} />
             </div>
             <LayerBar layers={layers} tf={tf} price={price} onChange={setLayers} />
             <AiChart

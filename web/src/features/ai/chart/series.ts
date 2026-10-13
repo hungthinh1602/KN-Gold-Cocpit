@@ -2,7 +2,7 @@
  * Các series phụ trên chart (không phải canvas): đường Entry/SL/TP + vùng lời/lỗ của Lệnh Live,
  * đường mô hình giá cổ điển. Trả về danh sách series để gỡ khi vẽ lại.
  */
-import type { IChartApi, ISeriesApi, LineStyle, SeriesType, UTCTimestamp } from "lightweight-charts";
+import type { IChartApi, ISeriesApi, LineStyle, SeriesMarker, SeriesType, Time, UTCTimestamp } from "lightweight-charts";
 import type { Candle, Formation, Order } from "../../../api/types";
 
 type AnySeries = ISeriesApi<SeriesType>;
@@ -99,4 +99,35 @@ export function addPatternSeries(chart: IChartApi, fm: Formation | null | undefi
     out.push(s);
   }
   return out;
+}
+
+/**
+ * Lịch sử lệnh đã đóng → dấu trên nến: ▲ (BUY) / ▼ (SELL) ở nến khớp Entry, ● ở nến đóng lệnh kèm kết quả.
+ * Thời gian sự kiện là giờ thật → cộng `off` (giờ server MT5) rồi bắt vào nến. Tối đa `limit` lệnh gần nhất.
+ */
+export function closedOrderMarkers(cds: Candle[], orders: Order[], off: number, en: boolean, limit = 60): SeriesMarker<Time>[] {
+  if (!cds.length) return [];
+  const snap = snapper(cds);
+  const first = cds[0].t;
+  const out: SeriesMarker<Time>[] = [];
+  const closed = orders.filter((o) => o.state === "closed").sort((a, b) => b.recv_ts - a.recv_ts).slice(0, limit);
+  for (const o of closed) {
+    const ev = o.events || [];
+    const entryTs = ev.find((e) => e.code.startsWith("ENTRY"))?.ts ?? o.recv_ts;
+    const exitTs = ev[ev.length - 1]?.ts ?? entryTs;
+    if (exitTs + off < first) continue;                    // lệnh cũ hơn đoạn nến đang có
+    const buy = o.side === "BUY";
+    const win = o.result === "win";
+    const pip = o.close_pip;
+    const res = o.status === "SL" ? "SL"
+      : pip != null ? `${o.status === "TP" ? "TP " : ""}${pip > 0 ? "+" : ""}${Math.round(pip)}p`
+      : win ? (en ? "Win" : "Thắng") : (en ? "Loss" : "Thua");
+    if (entryTs + off >= first) {
+      out.push({ time: T(snap(entryTs + off)), position: buy ? "belowBar" : "aboveBar", shape: buy ? "arrowUp" : "arrowDown",
+        color: buy ? "#16a34a" : "#dc2626", text: o.side });
+    }
+    out.push({ time: T(snap(exitTs + off)), position: buy ? "aboveBar" : "belowBar", shape: "circle",
+      color: win ? "#16a34a" : "#dc2626", text: res });
+  }
+  return out.sort((a, b) => (a.time as number) - (b.time as number));
 }

@@ -16,6 +16,11 @@ export const MAIN_LAYERS = [
   { key: "alerts", label: "🔔 Cảnh báo giá", en: "🔔 Price alerts" },
 ] as const;
 
+/** Tuỳ chọn phụ của lớp Lệnh Live — MẶC ĐỊNH BẬT. */
+export const ORDER_OPTS = [
+  { key: "ordHist", label: "▲▼ Lịch sử lệnh đã đóng", en: "▲▼ Closed order history" },
+] as const;
+
 /** Tuỳ chọn phụ của lớp Phiên — MẶC ĐỊNH BẬT (chỉ tắt khi = false). */
 export const SESS_OPTS = [
   { key: "sessBg", label: "Nền phiên Á/Âu/Mỹ", en: "Asia/London/NY shading" },

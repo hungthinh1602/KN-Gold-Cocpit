@@ -1,6 +1,6 @@
 /** Hàng nút lớp biểu đồ + tuỳ chọn phụ (sóng, Cung/Cầu khung lớn, phiên, cảnh báo giá). */
 import { TF_ORDER, type Timeframe } from "../../api/types";
-import { MAIN_LAYERS, SD_HTF, SESS_OPTS, WAVE_OPTS, waveOn, type Layers } from "./layers";
+import { MAIN_LAYERS, ORDER_OPTS, SD_HTF, SESS_OPTS, WAVE_OPTS, waveOn, type Layers } from "./layers";
 import { useLang } from "../../i18n/lang";
 import { AlertRow } from "./AlertRow";
 
@@ -31,6 +31,13 @@ export function LayerBar({ layers, tf, price, onChange }: {
           <span className="ai-sdsep">{en ? "Higher TF:" : "Khung lớn:"}</span>
           {SD_HTF.filter((b) => TF_ORDER.indexOf(b.tf) > cur).map((b) => (   // chỉ khung LỚN hơn khung đang xem
             <button key={b.key} type="button" aria-pressed={!!layers[b.key]} onClick={() => set(b.key, !layers[b.key])}>{b.label}</button>
+          ))}
+        </div>
+      )}
+      {layers.order && (
+        <div className="ai-layers ai-sdopts">
+          {ORDER_OPTS.map((b) => (
+            <button key={b.key} type="button" aria-pressed={waveOn(layers, b.key)} onClick={() => set(b.key, !waveOn(layers, b.key))}>{en ? b.en : b.label}</button>
           ))}
         </div>
       )}
