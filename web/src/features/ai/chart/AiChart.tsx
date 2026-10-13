@@ -454,6 +454,13 @@ export function AiChart(props: AiChartProps) {
       <div ref={boxRef} className="ai-chart" />
       <canvas ref={canvasRef} className="ai-ov" />
       {tool && <div className="ai-tool-layer" onPointerDown={onToolDown} onPointerMove={onToolMove} onPointerUp={onToolUp} />}
+      {tool && (
+        <div className="tool-hint-float">
+          {tool === "box" ? (lang === "en" ? "Drag on the chart to draw a box" : "Kéo trên chart để vẽ hộp")
+            : lang === "en" ? "Click a price level on the chart" : "Bấm vào mức giá trên chart"}
+          <span> · Esc {lang === "en" ? "to cancel" : "để huỷ"}</span>
+        </div>
+      )}
     </div>
   );
 }

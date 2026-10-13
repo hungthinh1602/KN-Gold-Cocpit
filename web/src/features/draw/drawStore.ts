@@ -1,5 +1,5 @@
 /**
- * Hình vẽ tay (lưu trên server) + công cụ đang chọn + hình đang chọn — dùng chung cho LayerBar và AiChart.
+ * Hình vẽ tay (lưu trên server) + công cụ đang chọn + hình đang chọn — dùng chung cho thanh điều khiển chart và AiChart.
  *   tool: "hline" (bấm 1 lần) · "box" (kéo) · "alert" (bấm 1 lần → đặt cảnh báo giá) · null (bình thường)
  *   selected: hình/cảnh báo vừa bấm vào trên chart (để xoá / sửa ghi chú)
  */

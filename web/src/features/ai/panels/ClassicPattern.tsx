@@ -1,18 +1,15 @@
 /** 📐 Mô hình giá cổ điển (price action) của khung đang xem. */
 import type { Formation, Timeframe } from "../../../api/types";
 import { px2 } from "../../../lib/format";
-import { Collapsible } from "../../../components/common/Collapsible";
 import { biasArrow } from "./LensPanel";
 import { useT } from "../../../i18n/lang";
 
+/** Nội dung tab Mô hình giá. */
 export function ClassicPattern({ tf, f }: { tf: Timeframe; f: Formation | null | undefined }) {
   const t = useT();
   return (
-    <Collapsible
-      id="classic"
-      title={t("📐 Mô hình giá cổ điển (price action)", "📐 Classic chart patterns (price action)")}
-      summary={f ? <>{biasArrow(f.dir)} {f.name} · <b>{f.completion}%</b></> : <>{t("Chưa rõ mô hình ở khung", "No clear pattern on")} {tf}</>}
-    >
+    <>
+      <div className="tab-head"><span>{t("Mô hình giá cổ điển (price action)", "Classic chart patterns (price action)")} · {tf}</span></div>
       {!f ? (
         <div className="ai-formation-box neutral">{t("Chưa rõ mô hình giá cổ điển ở khung", "No clear classic pattern on")} {tf}.</div>
       ) : (
@@ -24,6 +21,6 @@ export function ClassicPattern({ tf, f }: { tf: Timeframe; f: Formation | null |
           <div className="ai-note">{f.note}</div>
         </div>
       )}
-    </Collapsible>
+    </>
   );
 }

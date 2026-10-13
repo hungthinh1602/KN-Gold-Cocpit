@@ -1,5 +1,6 @@
 /**
- * Tab 🧠 AI PHÂN TÍCH: chart nhiều lớp + các khung phân tích bên dưới, Lệnh Live bên phải.
+ * Tab 🧠 AI PHÂN TÍCH: thanh điều khiển 2 hàng + chart nhiều lớp + giải thích các lớp đang bật,
+ * tab phân tích bên dưới, Lệnh Live bên phải.
  *   /api/ai?tf=   mỗi 60 giây (bộ quét server chạy 5 phút/lần) và khi đổi khung
  *   /api/orders   do App tải (mỗi 3 giây, dùng chung cho thông báo lệnh)
  *   /api/ai/live  mỗi 2 giây (trong AiChart)
@@ -7,22 +8,17 @@
 import { useState } from "react";
 import { api } from "../../api/client";
 import type { AiData, Candle, OrdersData, Timeframe } from "../../api/types";
-import { px2 } from "../../lib/format";
 import { usePolling } from "../../hooks/usePolling";
 import { useStoredState } from "../../hooks/useStoredState";
 import { useT } from "../../i18n/lang";
 import { useFullscreen } from "../../hooks/useFullscreen";
-import { TfSelector } from "./TfSelector";
 import { OrdersPanel } from "../orders/OrdersPanel";
 import { AiChart } from "./chart/AiChart";
-import { LayerBar } from "./LayerBar";
+import { ChartToolbar } from "./toolbar/ChartToolbar";
+import { AnalysisTabs } from "./AnalysisTabs";
 import type { Layers } from "./layers";
-import { ClassicPattern } from "./panels/ClassicPattern";
-import { LensPanel } from "./panels/LensPanel";
 import { SchoolModels } from "./panels/SchoolModels";
 import { StructureBox } from "./panels/StructureBox";
-import { SupplyDemand } from "./panels/SupplyDemand";
-import { MacroTextPanel, NarrativePanel } from "./panels/TextPanels";
 
 const AI_MS = 60_000;
 const STALE_SEC = 900;
@@ -64,16 +60,8 @@ export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; re
       <div className="ai-grid">
         <div className="ai-main">
           <section ref={fs.ref} className={"master ai-chartsec" + (fs.full ? " is-full" : "") + (fs.overlay ? " is-full-fixed" : "")}>
-            <div className="ai-pxline">
-              <span>
-                {t("Giá", "Price")} <b>{px2(price)}</b> · <span>{ok ? data.killzone : ""}</span> ·{" "}
-                <span>{ok && data.updated ? t("quét ", "scanned ") + data.updated.replace(" (VN)", "").slice(11) : ""}</span>
-              </span>
-              <button type="button" className="fs-btn" onClick={fs.toggle}
-                title={fs.full ? t("Thoát toàn màn hình (Esc)", "Exit full screen (Esc)") : t("Xem chart toàn màn hình", "View chart full screen")}>
-                {fs.full ? t("✕ Thoát", "✕ Exit") : t("⛶ Toàn màn hình", "⛶ Full screen")}
-              </button>
-            </div>
+            <ChartToolbar data={data} tf={tf} price={price} layers={layers} onLayers={setLayers}
+              onTf={(v) => { setTf(v); setLivePrice(null); }} full={fs.full} onFull={fs.toggle} />
             <div className="ai-note">
               {loadErr}
               {data?.error && <>{t("Chưa có dữ liệu quét — app tự quét MT5 mỗi 5 phút, cần MT5 đang mở và đăng nhập.", "No scan data yet — the app scans MT5 every 5 minutes; MT5 must be open and logged in.")}<div className="ai-note">{data.error}</div></>}
@@ -84,11 +72,6 @@ export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; re
               )}
               {ok && data.scan_err && <div className="ai-note">⚠️ {t("Lần quét gần nhất lỗi:", "Last scan failed:")} {data.scan_err} {t("(đang hiện bản cũ)", "(showing previous data)")}</div>}
             </div>
-            <div className="mtop" style={{ marginTop: 8 }}>
-              <span className="eyebrow">{t("🕒 Chọn khung", "🕒 Timeframe")}</span>
-              <TfSelector tf={tf} wave={ok ? data.wave : undefined} onChange={(v) => { setTf(v); setLivePrice(null); }} />
-            </div>
-            <LayerBar layers={layers} tf={tf} price={price} onChange={setLayers} />
             <AiChart
               tf={tf}
               candles={td?.candles ?? NO_CANDLES}
@@ -105,15 +88,7 @@ export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; re
             {ok && <SchoolModels tf={tf} schools={data.school[tf]} layers={layers} />}
           </section>
 
-          {ok && td && (
-            <>
-              <SupplyDemand tf={tf} set={data.cc[tf]} price={price} />
-              <LensPanel tf={tf} data={td} />
-              <ClassicPattern tf={tf} f={td.structure.formation} />
-              <NarrativePanel d={data} />
-              <MacroTextPanel text={data.macro} />
-            </>
-          )}
+          {ok && td && <AnalysisTabs data={data} td={td} tf={tf} price={price} />}
         </div>
 
         <OrdersPanel data={orders} selected={selected} onSelect={selectOrder} onCleared={reloadOrders} />

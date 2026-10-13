@@ -3,7 +3,6 @@ import type { Bias, Finding, LensKey, LensSetup, TfData, Timeframe } from "../..
 import { px2 } from "../../../lib/format";
 import { useStoredState } from "../../../hooks/useStoredState";
 import { Segmented } from "../../../components/common/Segmented";
-import { Collapsible } from "../../../components/common/Collapsible";
 import { useLang, useT } from "../../../i18n/lang";
 
 const LENS_TITLE: Record<LensKey, string> = { smc: "💧 SMC (dòng tiền)", ict: "⏱️ ICT", crt: "🕯️ CRT" };
@@ -59,35 +58,24 @@ function Signals({ list }: { list: Finding[] | undefined }) {
   );
 }
 
+/** Nội dung tab SMC · ICT · CRT. */
 export function LensPanel({ tf, data }: { tf: Timeframe; data: TfData }) {
   const t = useT();
   const [lang] = useLang();
   const [lens, setLens] = useStoredState<LensKey>("ailens", "smc");
   const L = data[lens] ?? {};
   return (
-    <Collapsible
-      id="lens"
-      title={`${(lang === "en" ? LENS_TITLE_EN : LENS_TITLE)[lens]} · ${tf}`}
-      extra={<Segmented options={LENS_OPTIONS} value={lens} onChange={setLens} />}
-      summary={<SetupLine su={L.setup} />}
-    >
+    <>
+      <div className="tab-head">
+        <span>{(lang === "en" ? LENS_TITLE_EN : LENS_TITLE)[lens]} · {tf}</span>
+        <Segmented options={LENS_OPTIONS} value={lens} onChange={setLens} />
+      </div>
       {/* note do bộ máy phân tích sinh ra (có thẻ <b> định dạng) */}
       <div className="verdict ai-text" style={{ marginTop: 8 }} dangerouslySetInnerHTML={{ __html: L.note || "—" }} />
       <div style={{ marginTop: 8 }}><SetupBox su={L.setup} /></div>
       <div className="eyebrow" style={{ fontSize: ".76rem", marginTop: 12, display: "block" }}>{t("Tín hiệu chi tiết", "Signal details")}</div>
       <div style={{ marginTop: 4 }}><Signals list={L.signals} /></div>
-    </Collapsible>
-  );
-}
-
-/** 1 dòng setup khi khung đang thu gọn — giữ lại Entry/SL/TP (chart không vẽ các mức này). */
-function SetupLine({ su }: { su: LensSetup | null | undefined }) {
-  const t = useT();
-  if (!su) return <>{t("Chưa có setup vào lệnh rõ", "No clear trade setup")}</>;
-  return (
-    <>
-      {biasArrow(su.dir)} {su.style || "Setup"}
-      {setupParts(su).map(([k, v]) => <span key={k}> · {k} <b>{v}</b></span>)}
     </>
   );
 }
+

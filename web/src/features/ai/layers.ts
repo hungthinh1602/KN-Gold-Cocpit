@@ -3,19 +3,19 @@ import type { Timeframe } from "../../api/types";
 
 export type Layers = Record<string, boolean | undefined>;
 
-/** Nút lớp chính. */
+/** Nút lớp chính (hàng 2 của thanh điều khiển chart). Cảnh báo giá luôn hiện — quản lý ở nút 🔔 hàng 1. */
 export const MAIN_LAYERS = [
-  { key: "struct", label: "🧱 Cấu trúc", en: "🧱 Structure" },
-  { key: "sd", label: "📦 Cung/Cầu", en: "📦 Supply/Demand" },
-  { key: "smcM", label: "💧 SMC", en: "💧 SMC" },
-  { key: "ictM", label: "⏱️ ICT", en: "⏱️ ICT" },
-  { key: "crtM", label: "🕯️ CRT", en: "🕯️ CRT" },
-  { key: "pattern", label: "📐 Mô hình giá", en: "📐 Chart patterns" },
-  { key: "sess", label: "🌏 Phiên", en: "🌏 Sessions" },
-  { key: "order", label: "⚡ Lệnh Live", en: "⚡ Live orders" },
-  { key: "alerts", label: "🔔 Cảnh báo giá", en: "🔔 Price alerts" },
-  { key: "draw", label: "✏️ Vẽ", en: "✏️ Draw" },
+  { key: "struct", label: "Cấu trúc", en: "Structure" },
+  { key: "sd", label: "Cung/Cầu", en: "Supply/Demand" },
+  { key: "smcM", label: "SMC", en: "SMC" },
+  { key: "ictM", label: "ICT", en: "ICT" },
+  { key: "crtM", label: "CRT", en: "CRT" },
+  { key: "pattern", label: "Mô hình giá", en: "Patterns" },
+  { key: "sess", label: "Phiên", en: "Sessions" },
+  { key: "order", label: "Lệnh Live", en: "Live orders" },
+  { key: "draw", label: "Hình vẽ", en: "Drawings" },
 ] as const;
+export type LayerKey = (typeof MAIN_LAYERS)[number]["key"];
 
 /** Tuỳ chọn phụ của lớp Lệnh Live — MẶC ĐỊNH BẬT. */
 export const ORDER_OPTS = [

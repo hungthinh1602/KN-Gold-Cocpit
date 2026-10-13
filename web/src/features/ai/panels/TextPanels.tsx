@@ -12,24 +12,24 @@ function shortStamp(s: string | undefined) {
 export function NarrativePanel({ d }: { d: AiData }) {
   const t = useT();
   return (
-    <section className="master">
-      <div className="mtop">
-        <span className="eyebrow">{t("🧠 AI phân tích tổng hợp", "🧠 AI market summary")}</span>
+    <>
+      <div className="tab-head">
+        <span>{t("Bài phân tích tổng hợp", "Market summary")}</span>
         {d.ai_src === "claude"
           ? <span className="ai-badge cl">✍️ {t("Phân tích chuyên sâu", "In-depth analysis")} · {d.ai_updated}</span>
           : <span className="ai-badge au">⚙️ {t("Tự động · cập nhật", "Auto · updated")} {shortStamp(d.updated)}</span>}
       </div>
       <NarrativeBody text={d.ai_text || ""} empty={t("(Chưa có nhận định.)", "(No analysis yet.)")} />
-    </section>
+    </>
   );
 }
 
 export function MacroTextPanel({ text }: { text: string }) {
   const t = useT();
   return (
-    <section className="master">
-      <div className="eyebrow">{t("🌐 Vĩ mô", "🌐 Macro")}</div>
+    <>
+      <div className="tab-head"><span>{t("Tóm tắt vĩ mô tác động tới vàng", "Macro summary for gold")}</span></div>
       <NarrativeBody text={text || ""} empty={t("(Chưa có tóm tắt vĩ mô.)", "(No macro summary yet.)")} />
-    </section>
+    </>
   );
 }
