@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import { useLang, useT } from "../../i18n/lang";
+import { AlertToggle } from "../../features/alerts/AlertUI";
 
 export function Header() {
   const [theme, setTheme] = useTheme();
@@ -19,6 +20,7 @@ export function Header() {
         <span className="hdname">{t("Buồng Lái Vàng", "Gold Cockpit")}</span>
       </div>
       <div className="hd-tools">
+        <AlertToggle />
         <span className="lang-sel" role="group" aria-label={t("Ngôn ngữ", "Language")}>
           <button type="button" aria-pressed={lang === "vi"} onClick={() => setLang("vi")}>VI</button>
           <button type="button" aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>

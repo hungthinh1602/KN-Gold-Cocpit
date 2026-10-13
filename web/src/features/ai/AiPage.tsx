@@ -1,7 +1,7 @@
 /**
  * Tab 🧠 AI PHÂN TÍCH: chart nhiều lớp + các khung phân tích bên dưới, Lệnh Live bên phải.
  *   /api/ai?tf=   mỗi 60 giây (bộ quét server chạy 5 phút/lần) và khi đổi khung
- *   /api/orders   mỗi 3 giây
+ *   /api/orders   do App tải (mỗi 3 giây, dùng chung cho thông báo lệnh)
  *   /api/ai/live  mỗi 2 giây (trong AiChart)
  */
 import { useState } from "react";
@@ -25,19 +25,17 @@ import { SupplyDemand } from "./panels/SupplyDemand";
 import { MacroTextPanel, NarrativePanel } from "./panels/TextPanels";
 
 const AI_MS = 60_000;
-const ORDERS_MS = 3_000;
 const STALE_SEC = 900;
 const TF_OPTIONS = TIMEFRAMES.map((x) => ({ value: x.tf, label: x.label }));
 const NO_CANDLES: Candle[] = [];
 
-export function AiPage() {
+export function AiPage({ orders, reloadOrders }: { orders: OrdersData | null; reloadOrders: () => Promise<void> }) {
   const t = useT();
   const fs = useFullscreen<HTMLElement>();
   const [tfPref, setTf] = useStoredState<Timeframe>("aitf", "H1");
   const [layers, setLayers] = useStoredState<Layers>("ailayers", {}, true);
   const [data, setData] = useState<AiData | null>(null);
   const [loadErr, setLoadErr] = useState("");
-  const [orders, setOrders] = useState<OrdersData | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [livePrice, setLivePrice] = useState<number | null>(null);
 
@@ -50,8 +48,6 @@ export function AiPage() {
     }
   }, AI_MS, true, [tfPref]);
 
-  const loadOrders = async () => setOrders(await api.orders());
-  usePolling(loadOrders, ORDERS_MS);
 
   const selectOrder = (id: string | null) => {
     setSelected(id);
@@ -121,7 +117,7 @@ export function AiPage() {
           )}
         </div>
 
-        <OrdersPanel data={orders} selected={selected} onSelect={selectOrder} onCleared={loadOrders} />
+        <OrdersPanel data={orders} selected={selected} onSelect={selectOrder} onCleared={reloadOrders} />
       </div>
     </div>
   );

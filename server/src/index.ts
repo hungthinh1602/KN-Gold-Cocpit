@@ -21,6 +21,13 @@ const app = express();
 app.use(compression());                                        // nén gzip — dữ liệu nến nặng
 
 app.use(webhookRouter);                                        // /webhook (khóa bằng token, trước lớp đăng nhập)
+
+// File công khai của app (icon, manifest PWA, service worker) — không chứa dữ liệu, cho tải trước khi đăng nhập
+const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../web/dist");
+const PUBLIC_FILE = /^\/(manifest\.webmanifest|sw\.js|icons\/[\w.-]+\.png)$/;
+const serveDist = express.static(webDist);
+app.use((req, res, next) => (PUBLIC_FILE.test(req.path) ? serveDist(req, res, next) : next()));
+
 app.use(express.json({ limit: "200kb" }));
 app.get("/auth", accountPage);
 app.use(accountRouter);                                        // các route tài khoản tự kiểm tra session/role
@@ -30,8 +37,7 @@ app.use("/api", marketRouter);
 app.use("/api", apiRouter);
 
 // Giao diện React (bản build). Khi dev, Vite chạy riêng ở cổng 5173 và proxy /api về đây.
-const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../web/dist");
-app.use(express.static(webDist));
+app.use(serveDist);
 app.get("*", (_req, res) => res.sendFile(path.join(webDist, "index.html")));
 
 startMacro();
