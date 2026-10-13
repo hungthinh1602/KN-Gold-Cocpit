@@ -175,3 +175,6 @@ export function clearTestOrders() {
   save();
   if (mongo.configured) void mongo.ordersDeleteTest().catch((e) => console.warn(`[mongo] delete test orders: ${(e as Error).message}`));
 }
+
+/** Lệnh đã đóng (thắng/thua) của tín hiệu TradingView, không gồm lệnh test và lệnh MT5 cá nhân — cho trang giới thiệu công khai. */
+export const publicClosedOrders = () => orders.filter((o) => !o.test && o.src !== "mt5" && (o.result === "win" || o.result === "loss"));

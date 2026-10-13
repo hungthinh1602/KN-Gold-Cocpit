@@ -157,3 +157,12 @@ export async function aiLive(tf: string) {
   const [bars, tick] = await Promise.all([mt5.rates(tf as Timeframe, 3), mt5.tick().catch(() => null)]);
   return { bars: bars.map((b) => ({ t: b.time, o: b.open, h: b.high, l: b.low, c: b.close })), bid: tick?.bid ?? null };
 }
+
+/** Nến + xu hướng sóng của các khung từ lần quét gần nhất (cho trang giới thiệu công khai). */
+export function scanCandles(tf: string): { t: number; o: number; h: number; l: number; c: number }[] {
+  return ((data as Record<string, any> | null)?.tf_data?.[tf]?.candles ?? []) as { t: number; o: number; h: number; l: number; c: number }[];
+}
+export function scanTrends(tfs: string[]): Record<string, number> {
+  const w = ((data as Record<string, any> | null)?.wave ?? {}) as Record<string, { E?: { trend?: number } }>;
+  return Object.fromEntries(tfs.map((tf) => [tf, w[tf]?.E?.trend ?? 0]));
+}

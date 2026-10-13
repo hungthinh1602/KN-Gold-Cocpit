@@ -41,11 +41,12 @@ export async function isAuthed(req: Request): Promise<boolean> {
 
 const loginHtml = (err = "") => LOGIN_PAGE.replace("__ERR__", err ? `<div class="err">${err}</div>` : "");
 
-/** Middleware: chặn khi chưa đăng nhập (API trả 401, trang trả form đăng nhập). */
+/** Middleware: chặn khi chưa đăng nhập (API trả 401, trang chủ "/" chuyển sang trang giới thiệu, trang khác trả form đăng nhập). */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   void isAuthed(req).then((ok) => {
     if (ok) return next();
-    if (req.path.startsWith("/api/")) res.status(mongo.configured && !mongo.ready ? 503 : 401).json({ error: mongo.configured && !mongo.ready ? mongo.error : "Chưa đăng nhập" });
+    if (req.method === "GET" && req.path === "/") res.redirect(302, "/gioi-thieu");   // khách lạ → trang giới thiệu
+    else if (req.path.startsWith("/api/")) res.status(mongo.configured && !mongo.ready ? 503 : 401).json({ error: mongo.configured && !mongo.ready ? mongo.error : "Chưa đăng nhập" });
     else if (mongo.configured) res.redirect(302, "/auth");
     else res.type("html").send(loginHtml());
   }).catch(next);

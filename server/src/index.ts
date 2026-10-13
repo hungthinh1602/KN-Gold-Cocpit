@@ -13,6 +13,7 @@ import { mongo } from "./db/mongo.js";
 import { apiRouter } from "./routes/api.js";
 import { marketRouter } from "./routes/market.js";
 import { toolsRouter } from "./routes/tools.js";
+import { publicRouter } from "./routes/public.js";
 import { startAlertWatch } from "./tools/service.js";
 import { webhookRouter } from "./routes/webhook.js";
 import { startMacro } from "./macro/service.js";
@@ -24,11 +25,13 @@ app.use(compression());                                        // nén gzip — 
 
 app.use(webhookRouter);                                        // /webhook (khóa bằng token, trước lớp đăng nhập)
 
-// File công khai của app (icon, manifest PWA, service worker) — không chứa dữ liệu, cho tải trước khi đăng nhập
+// File công khai của app (icon, manifest PWA, service worker, JS/CSS đã build) — không chứa dữ liệu, cho tải trước khi đăng nhập
 const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../web/dist");
-const PUBLIC_FILE = /^\/(manifest\.webmanifest|sw\.js|icons\/[\w.-]+\.png)$/;
+const PUBLIC_FILE = /^\/(manifest\.webmanifest|sw\.js|icons\/[\w.-]+\.png|assets\/[\w.-]+\.(js|css|png|svg|woff2?))$/;
 const serveDist = express.static(webDist);
 app.use((req, res, next) => (PUBLIC_FILE.test(req.path) ? serveDist(req, res, next) : next()));
+
+app.use(publicRouter(webDist));                                // trang giới thiệu + số liệu công khai
 
 app.use(express.json({ limit: "200kb" }));
 app.get("/auth", accountPage);
