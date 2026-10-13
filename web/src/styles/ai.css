@@ -136,13 +136,22 @@
 .page-ai .alert-add { display: inline-flex; gap: 4px; }
 .page-ai .alert-add input { width: 104px; font: inherit; font-size: .74rem; font-family: "IBM Plex Mono", monospace; padding: 3px 8px;
   border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
-.page-ai .alert-chip { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-family: "IBM Plex Mono", monospace; font-weight: 600;
-  padding: 2px 4px 2px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold) 60%, var(--border)); color: var(--gold); }
-.page-ai .ai-layers .alert-chip button { padding: 0 6px; border: 0; background: transparent; color: var(--dim); font-size: .7rem; }
-.page-ai .ai-layers .alert-chip button:hover { color: var(--down); }
 
 /* chọn khung + xu hướng 9 khung (TfSelector) */
 .page-ai .tf-sel-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .page-ai .tf-trend button { display: inline-flex; align-items: center; gap: 3px; }
 .page-ai .tf-trend i { font-style: normal; font-size: .62rem; line-height: 1; }
 .page-ai .tf-trend i.up { color: #16a34a; } .page-ai .tf-trend i.dn { color: #dc2626; } .page-ai .tf-trend i.na { color: var(--dim); }
+.page-ai .alert-add input.note-in { width: 120px; font-family: inherit; }
+.page-ai .ai-layers .alert-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; font-family: "IBM Plex Mono", monospace; }
+.page-ai .ai-layers .alert-chip.up b { color: #16a34a; } .page-ai .ai-layers .alert-chip.down b { color: #dc2626; }
+.page-ai .alert-chip .gap { color: var(--dim); font-size: .68rem; }
+.page-ai .alert-chip .note { color: var(--text); font-family: "IBM Plex Sans", sans-serif; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-ai .alert-edit { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 2px 4px; border-radius: 999px; border: 1px solid var(--gold); }
+.page-ai .alert-edit input { font: inherit; font-size: .72rem; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.page-ai .alert-edit input[type="number"] { width: 92px; font-family: "IBM Plex Mono", monospace; }
+.page-ai .alert-edit input[type="text"] { width: 150px; }
+.page-ai .ai-layers button.danger { color: var(--down); }
+.page-ai .tool-hint { color: var(--gold); font-weight: 600; }
+/* lớp tương tác khi đang dùng công cụ vẽ / đặt cảnh báo */
+.page-ai .ai-tool-layer { position: absolute; inset: 0; z-index: 3; cursor: crosshair; touch-action: none; }

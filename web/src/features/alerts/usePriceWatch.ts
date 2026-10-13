@@ -1,17 +1,17 @@
 /**
- * Canh giá ở MỌI tab (chạy trong App):
- *   - giá MT5 mỗi 3 giây (/api/tick) — chỉ khi có mức tự đặt hoặc bật "chạm vùng"
- *   - vùng/mức của khung đang chọn ở tab AI mỗi 60 giây (/api/ai/levels)
- * Mức tự đặt: giá đi QUA mức → báo 1 lần rồi xoá. Vùng: giá ĐI VÀO vùng (Cung/Cầu, OTE) hoặc đi qua mức
- * Strong/Weak → báo; cùng 1 vùng/mức không báo lại trong 15 phút.
+ * Chạy trong App (mọi tab):
+ *   - mỗi 3 giây tải /api/alerts: danh sách mức cảnh báo + các lần ĐÃ CHẠM (server tự canh 24/7) + giá hiện tại
+ *     → lần chạm mới → âm thanh + ô báo + thông báo hệ thống (lần tải đầu chỉ ghi nhận, không báo lại cái cũ)
+ *   - "báo chạm vùng": vùng/mức của khung đang chọn ở tab AI (/api/ai/levels mỗi 60 giây), so với giá mỗi 3 giây.
+ *     Giá ĐI VÀO vùng Cung/Cầu, OTE hoặc đi qua Strong/Weak → báo; cùng 1 vùng/mức không báo lại trong 15 phút.
  */
 import { useEffect, useRef } from "react";
 import { api, type AiLevels } from "../../api/client";
 import { pick, useLang } from "../../i18n/lang";
 import { notify } from "./alerts";
-import { getPriceAlerts, getZoneAlerts, removePriceAlert, usePriceAlerts, useZoneAlerts } from "./priceAlerts";
+import { getZoneAlerts, setAlertsData, useZoneAlerts } from "./priceAlerts";
 
-const TICK_MS = 3000;
+const POLL_MS = 3000;
 const LEVELS_MS = 60_000;
 const COOLDOWN_SEC = 15 * 60;
 
@@ -20,16 +20,15 @@ const crossed = (prev: number, cur: number, level: number) => (prev - level) * (
 
 export function usePriceWatch() {
   const [lang] = useLang();
-  const alerts = usePriceAlerts();
   const zoneOn = useZoneAlerts();
-  const active = alerts.length > 0 || zoneOn;
   const prev = useRef<number | null>(null);
+  const seenHits = useRef<Set<string> | null>(null);
   const levels = useRef<AiLevels | null>(null);
-  const fired = useRef(new Map<string, number>());      // vùng/mức → lần báo cuối (giây)
+  const fired = useRef(new Map<string, number>());
   const langRef = useRef(lang);
   langRef.current = lang;
 
-  // vùng/mức của khung đang xem ở tab AI
+  // vùng/mức của khung đang xem ở tab AI (chỉ khi bật "báo chạm vùng")
   useEffect(() => {
     if (!zoneOn) return;
     let stop = false;
@@ -55,36 +54,37 @@ export function usePriceWatch() {
     };
   }, [zoneOn]);
 
-  // giá + kiểm tra chạm
   useEffect(() => {
-    if (!active) {
-      prev.current = null;
-      return;
-    }
-    const check = async () => {
-      let cur: number;
+    const t = (vi: string, en: string) => pick(langRef.current, vi, en);
+    const poll = async () => {
+      let d;
       try {
-        const tk = await api.tick();
-        if (tk.bid == null) return;
-        cur = tk.bid;
+        d = await api.alerts();
       } catch {
         return;
       }
+      setAlertsData(d);
+
+      // 1) mức tự đặt đã chạm (server ghi lại)
+      const ids = new Set(d.hits.map((h) => h.id));
+      if (seenHits.current) {
+        for (const h of d.hits) {
+          if (seenHits.current.has(h.id)) continue;
+          const arrow = h.dir === "up" ? "↑" : "↓";
+          notify("info", `🔔 ${t("Giá chạm", "Price hit")} ${arrow} ${f2(h.price)}${h.note ? ` · ${h.note}` : ""}`,
+            `XAUUSD ${f2(h.hit)} · ${new Date(h.ts * 1000).toLocaleTimeString(langRef.current === "en" ? "en-GB" : "vi-VN")}`);
+        }
+      }
+      seenHits.current = ids;
+
+      // 2) giá chạm vùng của khung đang xem
+      const cur = d.bid;
       const p = prev.current;
       prev.current = cur;
-      if (p == null) return;                                   // lần đầu: chỉ ghi nhận giá
-      const t = (vi: string, en: string) => pick(langRef.current, vi, en);
-      const dir = cur > p ? t("đi lên", "rising") : t("đi xuống", "falling");
-
-      for (const a of getPriceAlerts()) {
-        if (!crossed(p, cur, a.price)) continue;
-        notify("info", `🔔 ${t("Giá chạm", "Price hit")} ${f2(a.price)}`, `XAUUSD ${f2(cur)} · ${dir}`);
-        removePriceAlert(a.id);
-      }
-
       const L = levels.current;
-      if (!getZoneAlerts() || !L) return;
+      if (cur == null || p == null || !getZoneAlerts() || !L) return;
       const now = Date.now() / 1000;
+      const dir = cur > p ? t("đi lên", "rising") : t("đi xuống", "falling");
       const once = (key: string, title: string, body: string) => {
         if (now - (fired.current.get(key) ?? 0) < COOLDOWN_SEC) return;
         fired.current.set(key, now);
@@ -110,8 +110,8 @@ export function usePriceWatch() {
         once(`l:${lv.kind}:${lv.price}`, `🧱 ${t("Giá chạm", "Price hit")} ${name} · ${L.tf}`, `${f2(lv.price)} · XAUUSD ${f2(cur)} · ${dir}`);
       }
     };
-    const id = window.setInterval(check, TICK_MS);
-    void check();
+    void poll();
+    const id = window.setInterval(poll, POLL_MS);
     return () => window.clearInterval(id);
-  }, [active]);
+  }, []);
 }

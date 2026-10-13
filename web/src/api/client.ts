@@ -24,6 +24,16 @@ export interface AiLevels {
   ote: { school: string; top: number; bottom: number }[];
 }
 
+/** Cảnh báo giá lưu trên server (server tự canh giá 24/7). */
+export interface ServerAlert { id: string; price: number; note: string; dir: "up" | "down"; created: number }
+export interface AlertHit { id: string; alertId: string; price: number; note: string; dir: "up" | "down"; hit: number; ts: number }
+export interface AlertsData { alerts: ServerAlert[]; hits: AlertHit[]; bid: number | null }
+
+/** Hình vẽ tay (đường ngang / hộp) — thời gian = giờ server MT5 như nến. */
+export interface Drawing { id: string; kind: "hline" | "box"; note: string; created: number; price?: number; t1?: number; t2?: number; p1?: number; p2?: number }
+
+type Ok<T = unknown> = { ok?: boolean; item?: T; error?: string };
+
 export const api = {
   macro: () => request<MacroData>("/api/data"),
   ai: (tf: Timeframe) => request<AiData>(`/api/ai?tf=${encodeURIComponent(tf)}`),
@@ -32,5 +42,13 @@ export const api = {
   tick: () => request<{ bid: number | null; ask: number | null; time: number; error?: string }>("/api/tick"),
   orders: () => request<OrdersData>("/api/orders"),
   clearTestOrders: () => request<{ ok: boolean }>("/api/orders/clear-test", { method: "POST" }),
+  alerts: () => request<AlertsData>("/api/alerts"),
+  addAlert: (price: number, note = "") => postJson<Ok<ServerAlert>>("/api/alerts", { price, note }),
+  updateAlert: (id: string, patch: { price?: number; note?: string }) => postJson<Ok>("/api/alerts/update", { id, ...patch }),
+  deleteAlert: (id: string) => postJson<Ok>("/api/alerts/delete", { id }),
+  drawings: () => request<{ drawings: Drawing[] }>("/api/drawings"),
+  addDrawing: (d: Partial<Drawing>) => postJson<Ok<Drawing>>("/api/drawings", d),
+  updateDrawing: (id: string, patch: { price?: number; note?: string }) => postJson<Ok>("/api/drawings/update", { id, ...patch }),
+  deleteDrawing: (id: string) => postJson<Ok>("/api/drawings/delete", { id }),
   saveOrderNote: (id: string, note: string) => postJson<{ ok?: boolean; error?: string }>("/api/orders/note", { id, note }),
 };

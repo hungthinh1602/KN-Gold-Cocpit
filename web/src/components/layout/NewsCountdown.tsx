@@ -41,7 +41,7 @@ export function NewsCountdown({ events }: { events: CalEvent[] | undefined }) {
       <span className="news-cd-main">
         {level === "out"
           ? <>{en ? "Just released:" : "Vừa ra tin:"} <b>{titles}</b> — {en ? `${Math.max(1, Math.round(-left / 60))} min ago, expect volatility` : `${Math.max(1, Math.round(-left / 60))} phút trước, cẩn thận biến động`}</>
-          : <><b>{titles}</b> {en ? "in" : "còn"} <b className="news-cd-left">{fmtLeft(left, en)}</b></>}
+          : <>{en ? "Key news:" : "Tin quan trọng:"} <b>{titles}</b> · {en ? "In" : "Còn"} <b className="news-cd-left">{fmtLeft(left, en)}</b></>}
       </span>
       <span className="news-cd-when">
         {when} {en ? "(VN time)" : "(giờ VN)"}

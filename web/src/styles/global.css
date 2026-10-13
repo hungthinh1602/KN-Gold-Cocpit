@@ -83,12 +83,13 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM P
 .foot b { color: var(--text); }
 
 /* thanh đếm ngược tin mạnh (NewsCountdown) */
-.news-cd { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin: -4px 0 12px; padding: 8px 12px; border-radius: 12px;
-  border: 1px solid var(--border); background: var(--surface); font-size: .82rem; }
-.news-cd-ic { font-size: 1rem; }
+.news-cd { display: flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; margin: -4px 0 12px; padding: 5px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface); font-size: .74rem; color: var(--dim); }
+.news-cd b { color: var(--text); font-weight: 600; }
+.news-cd-ic { font-size: .85rem; }
 .news-cd-main { flex: 1 1 auto; min-width: 0; }
 .news-cd-left { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
-.news-cd-when { color: var(--dim); font-size: .76rem; }
+.news-cd-when { color: var(--dim); font-size: .7rem; }
 .news-cd.amber { border-color: color-mix(in srgb, var(--neutral) 60%, var(--border)); background: color-mix(in srgb, var(--neutral) 10%, var(--surface)); }
 .news-cd.amber .news-cd-left { color: var(--neutral); }
 .news-cd.red, .news-cd.out { border-color: var(--down); background: color-mix(in srgb, var(--down) 12%, var(--surface)); }

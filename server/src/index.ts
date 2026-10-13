@@ -12,6 +12,8 @@ import { accountRouter } from "./routes/accounts.js";
 import { mongo } from "./db/mongo.js";
 import { apiRouter } from "./routes/api.js";
 import { marketRouter } from "./routes/market.js";
+import { toolsRouter } from "./routes/tools.js";
+import { startAlertWatch } from "./tools/service.js";
 import { webhookRouter } from "./routes/webhook.js";
 import { startMacro } from "./macro/service.js";
 import { startOrders, webhookStatus } from "./orders/service.js";
@@ -35,6 +37,7 @@ app.post("/login", express.urlencoded({ extended: false }), loginHandler);
 app.use(requireAuth);                                          // mọi thứ sau đây cần đăng nhập
 app.use("/api", marketRouter);
 app.use("/api", apiRouter);
+app.use("/api", toolsRouter);
 
 // Giao diện React (bản build). Khi dev, Vite chạy riêng ở cổng 5173 và proxy /api về đây.
 app.use(serveDist);
@@ -43,6 +46,7 @@ app.get("*", (_req, res) => res.sendFile(path.join(webDist, "index.html")));
 startMacro();
 startOrders();
 startAiScan();
+startAlertWatch();
 void mongo.connect();                                          // kết nối MongoDB nếu đã cấu hình
 
 // Có mật khẩu (VPS) → mở cho mọi IP; không có (máy dev) → chỉ máy này.

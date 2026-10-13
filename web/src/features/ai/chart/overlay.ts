@@ -263,3 +263,58 @@ export function drawSessions(p: Painter, cds: Candle[], step: number, o: Session
     }
   }
 }
+
+// ------------------------------------------------------------------ hình vẽ tay: đường ngang + hộp
+export interface UserShape {
+  id: string; kind: "hline" | "box"; note: string;
+  price?: number; t1?: number; t2?: number; p1?: number; p2?: number;
+}
+
+const DRAW_COLOR = "56,189,248";      // xanh da trời — khác màu các lớp phân tích
+
+/** Vẽ hình tay. `selId` = hình đang chọn (tô đậm). `preview` = hộp đang kéo dở. */
+export function drawUserShapes(p: Painter, shapes: UserShape[], selId: string | null, preview: UserShape | null) {
+  const { ctx, tx, Y, W } = p;
+  ctx.font = FONT;
+  for (const s of preview ? [...shapes, preview] : shapes) {
+    const sel = s.id === selId || s === preview;
+    const col = `rgba(${DRAW_COLOR},1)`;
+    if (s.kind === "hline" && s.price != null) {
+      const y = Y(s.price);
+      if (y == null) continue;
+      line(p, 0, y, W, y, col, sel ? 2 : 1.2);
+      const lab = `${s.price.toFixed(2)}${s.note ? " · " + s.note : ""}`;
+      ctx.fillStyle = col;
+      ctx.fillText(lab, Math.max(4, W - ctx.measureText(lab).width - 6), y - 4);
+    } else if (s.kind === "box" && s.t1 != null && s.t2 != null && s.p1 != null && s.p2 != null) {
+      const x1 = tx(Math.min(s.t1, s.t2)), x2 = tx(Math.max(s.t1, s.t2)), y1 = Y(Math.max(s.p1, s.p2)), y2 = Y(Math.min(s.p1, s.p2));
+      if (x1 == null || x2 == null || y1 == null || y2 == null) continue;
+      ctx.fillStyle = `rgba(${DRAW_COLOR},${sel ? 0.2 : 0.12})`;
+      ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = sel ? 2 : 1;
+      ctx.setLineDash(s === preview ? [4, 3] : []);
+      ctx.strokeRect(x1 + 0.5, y1 + 0.5, x2 - x1 - 1, y2 - y1 - 1);
+      ctx.setLineDash([]);
+      if (s.note) {
+        ctx.fillStyle = col;
+        ctx.fillText(s.note, x1 + 4, y1 - 4);
+      }
+    }
+  }
+}
+
+/** Hình nào nằm dưới điểm (x, y)? Đường: cách ≤ 6px. Hộp: điểm nằm trong hộp. Ưu tiên hình vẽ sau. */
+export function hitShape(p: Painter, shapes: UserShape[], x: number, y: number): UserShape | null {
+  for (let i = shapes.length - 1; i >= 0; i--) {
+    const s = shapes[i];
+    if (s.kind === "hline" && s.price != null) {
+      const yy = p.Y(s.price);
+      if (yy != null && Math.abs(yy - y) <= 6) return s;
+    } else if (s.kind === "box" && s.t1 != null && s.t2 != null && s.p1 != null && s.p2 != null) {
+      const x1 = p.tx(s.t1), x2 = p.tx(s.t2), y1 = p.Y(Math.max(s.p1, s.p2)), y2 = p.Y(Math.min(s.p1, s.p2));
+      if (x1 != null && x2 != null && y1 != null && y2 != null && x >= x1 && x <= x2 && y >= y1 && y <= y2) return s;
+    }
+  }
+  return null;
+}

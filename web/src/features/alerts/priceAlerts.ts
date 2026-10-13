@@ -1,10 +1,10 @@
 /**
- * Cảnh báo giá: các mức giá người dùng tự đặt (chạm → báo 1 lần rồi tự xoá) + bật/tắt báo "giá chạm vùng".
- * Lưu localStorage của từng máy ("priceAlerts", "zoneAlerts") — mỗi người xem có danh sách riêng.
+ * Cảnh báo giá — LƯU TRÊN SERVER (máy nào cũng thấy; server tự canh giá 24/7 kể cả khi không mở web).
+ * Store phía web: danh sách mức đang chờ + giá hiện tại (cập nhật mỗi 3 giây bởi usePriceWatch).
+ * Bật/tắt "báo chạm vùng" vẫn lưu theo từng máy (localStorage "zoneAlerts").
  */
 import { useSyncExternalStore } from "react";
-
-export interface PriceAlert { id: string; price: number; created: number }
+import { api, type AlertsData, type ServerAlert } from "../../api/client";
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((fn) => fn());
@@ -13,46 +13,62 @@ const subscribe = (fn: () => void) => {
   return () => listeners.delete(fn);
 };
 
-function load<T>(key: string, fallback: T): T {
+let alerts: ServerAlert[] = [];
+let bid: number | null = null;
+let zoneOn: boolean = (() => {
   try {
-    const raw = localStorage.getItem(key);
-    return raw == null ? fallback : (JSON.parse(raw) as T);
+    return localStorage.getItem("zoneAlerts") !== "false";
   } catch {
-    return fallback;
+    return true;
   }
+})();
+
+/** usePriceWatch gọi mỗi lần tải /api/alerts. */
+export function setAlertsData(d: AlertsData) {
+  alerts = [...d.alerts].sort((a, b) => b.price - a.price);
+  bid = d.bid;
+  emit();
 }
-function save(key: string, v: unknown) {
+
+async function refresh() {
   try {
-    localStorage.setItem(key, JSON.stringify(v));
+    setAlertsData(await api.alerts());
   } catch {
-    /* bỏ qua */
+    /* lần tải sau sẽ cập nhật */
   }
 }
 
-let alerts: PriceAlert[] = load<PriceAlert[]>("priceAlerts", []);
-let zoneOn: boolean = load<boolean>("zoneAlerts", true);
-
-export function addPriceAlert(price: number) {
+export async function addPriceAlert(price: number, note = "") {
   if (!Number.isFinite(price) || price <= 0) return;
-  alerts = [...alerts, { id: `a${Date.now()}`, price: Math.round(price * 100) / 100, created: Date.now() / 1000 }]
-    .sort((a, b) => b.price - a.price);
-  save("priceAlerts", alerts);
-  emit();
+  await api.addAlert(Math.round(price * 100) / 100, note);
+  await refresh();
 }
 
-export function removePriceAlert(id: string) {
-  alerts = alerts.filter((a) => a.id !== id);
-  save("priceAlerts", alerts);
+export async function updatePriceAlert(id: string, patch: { price?: number; note?: string }) {
+  alerts = alerts.map((a) => (a.id === id ? { ...a, ...patch } : a));   // hiện ngay, server xác nhận sau
   emit();
+  await api.updateAlert(id, patch);
+  await refresh();
+}
+
+export async function removePriceAlert(id: string) {
+  alerts = alerts.filter((a) => a.id !== id);
+  emit();
+  await api.deleteAlert(id);
+  await refresh();
 }
 
 export function setZoneAlerts(on: boolean) {
   zoneOn = on;
-  save("zoneAlerts", on);
+  try {
+    localStorage.setItem("zoneAlerts", String(on));
+  } catch {
+    /* bỏ qua */
+  }
   emit();
 }
 
 export const usePriceAlerts = () => useSyncExternalStore(subscribe, () => alerts);
+export const useLiveBid = () => useSyncExternalStore(subscribe, () => bid);
 export const useZoneAlerts = () => useSyncExternalStore(subscribe, () => zoneOn);
-export const getPriceAlerts = () => alerts;
 export const getZoneAlerts = () => zoneOn;

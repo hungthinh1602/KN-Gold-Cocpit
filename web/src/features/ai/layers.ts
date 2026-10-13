@@ -14,10 +14,12 @@ export const MAIN_LAYERS = [
   { key: "sess", label: "🌏 Phiên", en: "🌏 Sessions" },
   { key: "order", label: "⚡ Lệnh Live", en: "⚡ Live orders" },
   { key: "alerts", label: "🔔 Cảnh báo giá", en: "🔔 Price alerts" },
+  { key: "draw", label: "✏️ Vẽ", en: "✏️ Draw" },
 ] as const;
 
 /** Tuỳ chọn phụ của lớp Lệnh Live — MẶC ĐỊNH BẬT. */
 export const ORDER_OPTS = [
+  { key: "ordLevels", label: "Entry / SL / TP", en: "Entry / SL / TP" },
   { key: "ordHist", label: "Lịch sử lệnh", en: "Order history" },
 ] as const;
 

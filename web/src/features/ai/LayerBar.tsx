@@ -3,6 +3,7 @@ import { TF_ORDER, type Timeframe } from "../../api/types";
 import { MAIN_LAYERS, ORDER_OPTS, SD_HTF, SESS_OPTS, WAVE_OPTS, waveOn, type Layers } from "./layers";
 import { useLang } from "../../i18n/lang";
 import { AlertRow } from "./AlertRow";
+import { DrawRow } from "./DrawRow";
 
 export function LayerBar({ layers, tf, price, onChange }: {
   layers: Layers; tf: Timeframe; price: number | null; onChange: (next: Layers) => void;
@@ -50,6 +51,7 @@ export function LayerBar({ layers, tf, price, onChange }: {
         </div>
       )}
       {layers.alerts && <AlertRow price={price} tf={tf} />}
+      {layers.draw && <DrawRow />}
     </>
   );
 }
