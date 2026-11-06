@@ -69,6 +69,20 @@ Các API tài khoản/VIP đã được chuyển trước: `/api/auth/register`,
 | `DATA_DIR` | server/data | thư mục file khóa + dữ liệu |
 | `GOLD_WEB_PASS` | (file web_password.txt) | có mật khẩu → mở Internet + bắt đăng nhập + mở cổng webhook |
 | `WEBHOOK_PORT` | 80 | cổng riêng nhận webhook TradingView (chỉ khi có mật khẩu + token; 0 = tắt) |
+| `TELEGRAM_BOT_TOKEN` | (file telegram_bot_token.txt) | token bot Telegram từ @BotFather |
+| `TELEGRAM_CHAT_ID` | — | nhóm/kênh nhận tín hiệu Lệnh Live, nhiều nơi cách nhau dấu phẩy |
+| `TELEGRAM_ALERT_CHAT_ID` | = `TELEGRAM_CHAT_ID` | nơi nhận cảnh báo giá đã chạm |
+| `TELEGRAM_SEND_TEST` | 0 | `1` = gửi cả lệnh test (có nhãn [TEST]) |
+
+### Bot Telegram
+
+Server tự gửi lên Telegram: lệnh mới (Entry/SL/TP), khớp Entry, đạt +50/+100 pip, TP, SL, hủy, và cảnh báo giá đã chạm.
+Chỉ gửi tín hiệu TradingView, không gửi lệnh MT5 cá nhân. Cách bật:
+
+1. Tạo bot với @BotFather, lấy token. Thêm bot vào nhóm/kênh VIP (kênh: cấp quyền admin để đăng tin).
+2. Lấy chat id của nhóm (dạng `-100…`, ví dụ nhắn vào nhóm rồi mở `https://api.telegram.org/bot<token>/getUpdates`).
+3. Điền `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` vào `.env`, khởi động lại server.
+4. Kiểm tra: `cd server && npx tsx scripts/telegram-hello.ts` (gửi 1 tin thử). Kiểm tra bộ định dạng: `npx tsx scripts/test-telegram.ts`.
 
 ## API
 

@@ -7,6 +7,7 @@
  */
 import { mt5 } from "../mt5/client.js";
 import { readJson, writeJson } from "../lib/store.js";
+import { notifyAlertHit } from "../notify/telegram.js";
 
 export interface PriceAlert { id: string; price: number; note: string; dir: "up" | "down"; created: number }
 export interface AlertHit { id: string; alertId: string; price: number; note: string; dir: "up" | "down"; hit: number; ts: number }
@@ -89,7 +90,9 @@ export function startAlertWatch() {
       const reached = alerts.filter((a) => (a.dir === "up" ? bid >= a.price : bid <= a.price));
       if (reached.length) {
         for (const a of reached) {
-          hits.push({ id: newId("h"), alertId: a.id, price: a.price, note: a.note, dir: a.dir, hit: bid, ts: Date.now() / 1000 });
+          const h: AlertHit = { id: newId("h"), alertId: a.id, price: a.price, note: a.note, dir: a.dir, hit: bid, ts: Date.now() / 1000 };
+          hits.push(h);
+          notifyAlertHit(h);
           alerts.splice(alerts.indexOf(a), 1);
         }
         hits.splice(0, Math.max(0, hits.length - MAX_HITS));
