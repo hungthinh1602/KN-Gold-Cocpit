@@ -128,3 +128,13 @@ export interface Mt5Status {
 export interface WebhookStatus { last?: { ts: number; ok: boolean; msg: string } | null; err?: string | null }
 
 export interface OrdersData { orders: Order[]; now: number; mt5: Mt5Status; webhook?: WebhookStatus }
+
+/** Thống kê hiệu suất tín hiệu (/api/stats). */
+export interface StatsBucket { key: string; trades: number; win: number; loss: number; winrate: number | null; pips: number; avg: number | null; pf: number | null }
+export interface StatsData {
+  from: number; trades: number; win: number; loss: number; cancel: number; running: number;
+  winrate: number | null; pips: number; avg: number | null; avgWin: number | null; avgLoss: number | null;
+  pf: number | null; maxDd: number; bestStreak: number; worstStreak: number;
+  curve: { t: number; pips: number }[];
+  months: StatsBucket[]; setups: StatsBucket[]; sides: StatsBucket[]; tfs: StatsBucket[]; sessions: StatsBucket[];
+}

@@ -38,6 +38,11 @@ export const config = {
   webPassword: () => process.env.GOLD_WEB_PASS?.trim() || readEnv("GOLD_WEB_PASS") || readSecret("web_password.txt"),
   tvToken: () => process.env.TV_WEBHOOK_TOKEN?.trim() || readEnv("TV_WEBHOOK_TOKEN") || readSecret("tv_webhook_token.txt"),
   aiPushKey: () => process.env.AI_PUSH_KEY?.trim() || readEnv("AI_PUSH_KEY") || readSecret("ai_push_key.txt"),
+  /** Bot Telegram (notify/telegram.ts). Không có token/chat → không gửi. */
+  telegramToken: () => process.env.TELEGRAM_BOT_TOKEN?.trim() || readEnv("TELEGRAM_BOT_TOKEN") || readSecret("telegram_bot_token.txt"),
+  telegramChatId: () => process.env.TELEGRAM_CHAT_ID?.trim() || readEnv("TELEGRAM_CHAT_ID"),
+  telegramAlertChatId: () => process.env.TELEGRAM_ALERT_CHAT_ID?.trim() || readEnv("TELEGRAM_ALERT_CHAT_ID"),
+  telegramSendTest: () => (process.env.TELEGRAM_SEND_TEST?.trim() || readEnv("TELEGRAM_SEND_TEST")) === "1",
   /** MongoDB Atlas URI. Keep credentials out of tracked files. */
   mongoUri: () => process.env.MONGODB_URI?.trim() || readEnv("MONGODB_URI") || process.env.MONGO_URI?.trim() || readEnv("MONGO_URI"),
 };

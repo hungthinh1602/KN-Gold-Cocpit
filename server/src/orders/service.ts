@@ -9,7 +9,9 @@ import { avgEntry, mt5BarMfe, orderEvent, orderStep } from "./engine.js";
 import { mt5Sync, type Mt5Status } from "./mt5sync.js";
 import { knRank, parseKn, parseSignal, type KnEvent, type KnMessage } from "./parse.js";
 import { PIP_SIZE, type Order } from "./types.js";
+import { signalStats, type StatsOptions } from "./stats.js";
 import { mongo } from "../db/mongo.js";
+import { notifyOrders, primeOrderNotify, telegramStatus } from "../notify/telegram.js";
 
 const FILE = "orders.json";
 const POLL_MS = 2000;
@@ -20,7 +22,10 @@ const orders: Order[] = readJson<Order[]>(FILE, []);
 const mt5Status: Mt5Status = { ok: false, login: null, server: "", company: "", tick: null, off: null, err: null };
 export const webhookStatus: { port80: string | null; last: unknown; err: string | null } = { port80: null, last: null, err: null };
 
+primeOrderNotify(orders);                 // lệnh cũ trong file → không gửi lại lên Telegram
+
 const save = () => {
+  notifyOrders(orders);                   // sự kiện mới → Telegram
   writeJson(FILE, orders);
   if (mongo.configured) void mongo.ordersSave(orders as unknown as Record<string, unknown>[]).catch((e) => console.warn(`[mongo] order sync: ${(e as Error).message}`));
 };
@@ -275,6 +280,7 @@ export function startOrders() {
       const stored = await mongo.ordersLoad();
       if (stored.length) {
         orders.splice(0, orders.length, ...(stored as unknown as Order[]));
+        primeOrderNotify(orders);
         writeJson(FILE, orders);
       } else if (orders.length) {
         await mongo.ordersSave(orders as unknown as Record<string, unknown>[]);
@@ -289,7 +295,7 @@ export function startOrders() {
 export function ordersPayload() {
   return {
     orders: orders.slice(-500).map((o) => ({ ...o, raw: null })),
-    now: Date.now() / 1000, webhook: webhookStatus, pip: PIP_SIZE, mt5: { ...mt5Status },
+    now: Date.now() / 1000, webhook: webhookStatus, pip: PIP_SIZE, mt5: { ...mt5Status }, telegram: { ...telegramStatus },
   };
 }
 
@@ -319,3 +325,6 @@ export function clearTestOrders() {
 
 /** Lệnh đã đóng (thắng/thua) của tín hiệu TradingView, không gồm lệnh test và lệnh MT5 cá nhân — cho trang giới thiệu công khai. */
 export const publicClosedOrders = () => orders.filter((o) => !o.test && o.src !== "mt5" && (o.result === "win" || o.result === "loss"));
+
+/** Thống kê hiệu suất tín hiệu trên TOÀN BỘ lịch sử lệnh (không giới hạn 500 lệnh như /api/orders). */
+export const ordersStats = (opts: StatsOptions) => signalStats(orders, opts);
