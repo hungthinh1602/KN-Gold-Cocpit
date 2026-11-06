@@ -1,5 +1,5 @@
 /** Gọi API server Node. Kiểu dữ liệu nằm ở ./types. */
-import type { AiData, AiLive, MacroData, OrdersData, Timeframe } from "./types";
+import type { AiData, AiLive, MacroData, OrdersData, StatsData, Timeframe } from "./types";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { cache: "no-store", ...init });
@@ -36,6 +36,7 @@ type Ok<T = unknown> = { ok?: boolean; item?: T; error?: string };
 
 export const api = {
   macro: () => request<MacroData>("/api/data"),
+  stats: (days: number, mt5: boolean) => request<StatsData>(`/api/stats?days=${days}&mt5=${mt5 ? 1 : 0}`),
   ai: (tf: Timeframe) => request<AiData>(`/api/ai?tf=${encodeURIComponent(tf)}`),
   aiLive: (tf: Timeframe) => request<AiLive>(`/api/ai/live?tf=${encodeURIComponent(tf)}`),
   aiLevels: (tf: string) => request<AiLevels>(`/api/ai/levels?tf=${encodeURIComponent(tf)}`),

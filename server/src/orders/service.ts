@@ -9,6 +9,7 @@ import { avgEntry, mt5BarMfe, orderEvent, orderStep } from "./engine.js";
 import { mt5Sync, type Mt5Status } from "./mt5sync.js";
 import { knRank, parseKn, parseSignal, type KnEvent, type KnMessage } from "./parse.js";
 import { PIP_SIZE, type Order } from "./types.js";
+import { signalStats, type StatsOptions } from "./stats.js";
 import { mongo } from "../db/mongo.js";
 import { notifyOrders, primeOrderNotify, telegramStatus } from "../notify/telegram.js";
 
@@ -324,3 +325,6 @@ export function clearTestOrders() {
 
 /** Lệnh đã đóng (thắng/thua) của tín hiệu TradingView, không gồm lệnh test và lệnh MT5 cá nhân — cho trang giới thiệu công khai. */
 export const publicClosedOrders = () => orders.filter((o) => !o.test && o.src !== "mt5" && (o.result === "win" || o.result === "loss"));
+
+/** Thống kê hiệu suất tín hiệu trên TOÀN BỘ lịch sử lệnh (không giới hạn 500 lệnh như /api/orders). */
+export const ordersStats = (opts: StatsOptions) => signalStats(orders, opts);

@@ -14,17 +14,18 @@ import { MacroPage } from "./features/macro/MacroPage";
 import { AiPage } from "./features/ai/AiPage";
 import { AccountPage } from "./features/account/AccountPage";
 import { AdminPage } from "./features/admin/AdminPage";
+import { StatsPage } from "./features/stats/StatsPage";
 import "./styles/account.css";
 import { useT } from "./i18n/lang";
 
-type Page = "macro" | "ai" | "account" | "admin";
+type Page = "macro" | "ai" | "stats" | "account" | "admin";
 const MACRO_MS = 30_000;
 const ORDERS_MS = 3_000;   // Lệnh Live: tải ở mọi tab để thông báo lệnh luôn chạy
 
 export function App() {
   const t = useT();
   const [stored, setPage] = useStoredState<string>("page", "macro");
-  const page: Page = stored === "ai" || stored === "account" || stored === "admin" ? stored : "macro";
+  const page: Page = stored === "ai" || stored === "stats" || stored === "account" || stored === "admin" ? stored : "macro";
   const [macro, setMacro] = useState<MacroData | null>(null);
   const [netErr, setNetErr] = useState(false);
   const [orders, setOrders] = useState<OrdersData | null>(null);
@@ -59,11 +60,12 @@ export function App() {
       <div className="tabs">
         <button type="button" className="tab" aria-pressed={page === "macro"} onClick={() => setPage("macro")}>{t("📊 VĨ MÔ", "📊 MACRO")}</button>
         <button type="button" className="tab" aria-pressed={page === "ai"} onClick={() => setPage("ai")}>{t("🧠 AI PHÂN TÍCH", "🧠 AI ANALYSIS")}</button>
+        <button type="button" className="tab" aria-pressed={page === "stats"} onClick={() => setPage("stats")}>{t("📈 HIỆU SUẤT", "📈 PERFORMANCE")}</button>
         <button type="button" className="tab" aria-pressed={page === "account"} onClick={() => setPage("account")}>{t("👤 TÀI KHOẢN", "👤 ACCOUNT")}</button>
         {account?.role === "admin" && <button type="button" className="tab" aria-pressed={page === "admin"} onClick={() => setPage("admin")}>{t("⚙ QUẢN TRỊ", "⚙ ADMIN")}</button>}
       </div>
 
-      {page === "macro" ? <MacroPage data={macro} /> : page === "ai" ? <AiPage orders={orders} reloadOrders={loadOrders} /> : page === "admin" ? <AdminPage /> : <AccountPage account={account} onLogout={logout} />}
+      {page === "macro" ? <MacroPage data={macro} /> : page === "ai" ? <AiPage orders={orders} reloadOrders={loadOrders} /> : page === "stats" ? <StatsPage /> : page === "admin" ? <AdminPage /> : <AccountPage account={account} onLogout={logout} />}
 
       <p className="foot">
         <span>{t("Cập nhật lúc", "Updated at")} <b>{macro?.updated || "—"}</b></span> · {netErr ? <span className="err">{t("Mất kết nối tới app.", "Lost connection to the app.")}</span> : macro?.error && <span className="err">⚠ {macro.error}</span>}

@@ -95,6 +95,7 @@ Chỉ gửi tín hiệu TradingView, không gửi lệnh MT5 cá nhân. Cách b�
 | `GET /api/ai?tf=` | quét phân tích (mỗi 5 phút) — chỉ gửi nến của khung `tf` |
 | `GET /api/ai/live?tf=` | 3 nến cuối + giá (chart chạy trực tiếp) |
 | `GET /api/health` · `/api/candles?tf=` · `/api/tick` | MT5 qua bridge |
+| `GET /api/stats?days=&mt5=` | thống kê hiệu suất tín hiệu cho tab 📈 Hiệu suất (`days=0`: tất cả; `mt5=1`: gồm lệnh MT5) · kiểm tra: `npx tsx scripts/test-stats.ts` |
 
 ## Lộ trình chuyển đổi
 
