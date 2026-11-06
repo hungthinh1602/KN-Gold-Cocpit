@@ -7,7 +7,7 @@ import { readJson, writeJson } from "../lib/store.js";
 import { vnStamp } from "../lib/time.js";
 import { avgEntry, mt5BarMfe, orderEvent, orderStep } from "./engine.js";
 import { mt5Sync, type Mt5Status } from "./mt5sync.js";
-import { parseSignal } from "./parse.js";
+import { knRank, parseKn, parseSignal, type KnEvent, type KnMessage } from "./parse.js";
 import { PIP_SIZE, type Order } from "./types.js";
 import { mongo } from "../db/mongo.js";
 
@@ -26,8 +26,148 @@ const save = () => {
 };
 const isActive = (o: Order) => o.state === "pending" || o.state === "open";
 
-/** Nhận 1 tin webhook. Trả thông báo; lỗi thì ném Error. */
-export function addSignal(raw: string): string {
+// ───────────────  LỆNH THEO TIN TRADINGVIEW (chỉ báo KN: tin có mã setup, KHÔNG dùng giá MT5)  ───────────────
+const KN_BUFFER_SEC = 600;                                        // tin sự kiện tới TRƯỚC setup: giữ tối đa 10 phút
+const knBuffer = new Map<string, { ts: number; ev: KnEvent }[]>();   // mã lệnh → tin đang chờ setup
+
+const r1 = (x: number) => Math.round(x * 10) / 10;
+const f2 = (x: number) => x.toFixed(2);
+
+/** Áp 1 tin sự kiện vào lệnh feed. Trả true nếu lệnh đổi (tin trùng/muộn → false). */
+function applyKnEvent(o: Order, ev: KnEvent, ts: number): boolean {
+  if (!isActive(o)) return false;                                   // lệnh đã đóng/hủy → bỏ tin muộn
+  const sgn = o.side === "BUY" ? 1 : -1;
+  const pip = o.pip || PIP_SIZE;
+  const note = (code: string, text: string, price: number | null = null) => {
+    orderEvent(o, code, text, price);
+    o.events[o.events.length - 1].ts = ts;                          // giờ nhận tin (tin chờ setup giữ giờ tới thật)
+  };
+  const ensureFilled = () => {                                      // tin sau Entry tới trước tin "Khớp Entry" → coi như đã khớp
+    if (o.filled[0]) return;
+    o.filled[0] = true;
+    o.state = "open";
+    note("ENTRY1", `🎯 Khớp Entry ${f2(o.entries[0])}`, o.entries[0]);
+  };
+  const entry = o.entries[0];
+  switch (ev.kind) {
+    case "entry":
+      if (o.filled[0]) return false;
+      ensureFilled();
+      return true;
+    case "pip":
+      if (o.ms?.includes(ev.pip)) return false;
+      ensureFilled();
+      o.ms = [...(o.ms ?? []), ev.pip].sort((a, b) => a - b);
+      o.mfe = Math.max(o.mfe, ev.pip);
+      if (ev.pip >= 50) o.pip50 = true;
+      if (ev.pip >= 100) o.pip100 = true;
+      note(`PIP${ev.pip}`, `💰 Đạt +${ev.pip} pip`, ev.price);
+      return true;
+    case "win":
+      if (o.win) return false;
+      ensureFilled();
+      o.win = true;
+      o.win_pip = ev.pip;
+      o.mfe = Math.max(o.mfe, ev.pip);
+      if (ev.pip >= 100) o.pip100 = true;
+      note("WIN", `🏆 Đạt +${ev.pip} pip (thắng)`);
+      return true;
+    case "tp": {
+      ensureFilled();
+      const px = ev.price ?? o.tps[0];
+      o.state = "closed";
+      o.result = "win";
+      o.tp_hit = o.tps.length;
+      o.close_pip = r1(((px - entry) * sgn) / pip);
+      note("TP", "✅ Đạt TP - Đóng lệnh", px);
+      return true;
+    }
+    case "sl": {
+      ensureFilled();
+      const px = ev.price ?? o.sl!;
+      o.state = "closed";
+      o.result = o.win ? "win" : "loss";
+      o.close_pip = r1(((px - entry) * sgn) / pip);
+      note("SL", "❌ Dính SL - Đóng lệnh", px);
+      return true;
+    }
+    case "cancel":
+      if (o.state !== "pending") return false;                      // đã khớp thì không còn hủy chờ
+      o.state = "cancelled";
+      o.result = "cancel";
+      o.why = ev.why;
+      note("CANCEL", "⛔ Hủy");                                      // chỉ chữ "Hủy" — không hiện lý do
+      return true;
+    case "hide":
+      if (o.state !== "open") return false;
+      o.state = "closed";
+      o.result = o.win ? "win" : "cancel";
+      o.close_pip = o.win ? (o.win_pip ?? 100) : null;
+      note("HIDE", "🙈 Ẩn lệnh — đã thắng, giá quay đầu sâu");
+      return true;
+  }
+}
+
+/** Nhận 1 tin có mã setup: setup → tạo lệnh; sự kiện → ghép vào đúng lệnh (chưa có setup thì giữ chờ). */
+function handleKn(m: KnMessage, raw: string, test: boolean): string {
+  const uid = `${m.indi}|${m.side}|${m.sid}`;
+  const now = Date.now() / 1000;
+  const cur = orders.find((o) => o.uid === uid);
+  if (m.setup) {
+    if (cur) return `đã có lệnh ${cur.id} (tin gửi lại — bỏ qua)`;
+    const st = m.setup;
+    const o: Order = {
+      id: `${vnStamp()}-${orders.length % 1000}`, indi: m.indi, side: m.side, tf: m.tf, symbol: m.symbol, test,
+      entries: [st.entry], filled: [false], sl: st.sl, tps: [st.tp], pip: PIP_SIZE,
+      recv_ts: now, raw: raw.slice(0, 1000), state: "pending", fill_bar_t: null, last_t: null,
+      tp_hit: 0, pip50: false, pip100: false, mfe: 0, mae: 0, cur_pip: null, result: null, close_pip: null,
+      events: [], status: "", status_text: "", feed: "tv", uid, ms: [],
+    };
+    orderEvent(o, "NEW", "⏳ Chờ khớp Entry");
+    orders.push(o);
+    const early = knBuffer.get(uid) ?? [];                          // tin tới trước setup → áp theo thứ tự hợp lý
+    knBuffer.delete(uid);
+    early.sort((a, b) => knRank(a.ev) - knRank(b.ev) || a.ts - b.ts).forEach((b) => applyKnEvent(o, b.ev, b.ts));
+    save();
+    return `đã nhận lệnh ${o.id}${early.length ? ` (+${early.length} tin đến trước)` : ""}`;
+  }
+  const ev = m.event!;
+  if (cur) {
+    const ch = applyKnEvent(cur, ev, now);
+    if (ch) save();
+    return ch ? `đã cập nhật lệnh ${cur.id}` : `tin trùng hoặc lệnh ${cur.id} đã xong — bỏ qua`;
+  }
+  const q = knBuffer.get(uid) ?? [];                                // chưa có setup → giữ chờ
+  q.push({ ts: now, ev });
+  knBuffer.set(uid, q);
+  return "chưa có setup — giữ tin chờ";
+}
+
+/** Dọn: lệnh feed chờ khớp quá 24h → hủy (phòng mất tin Hủy); bỏ tin chờ setup quá hạn. */
+function expireKn(): boolean {
+  const now = Date.now() / 1000;
+  let ch = false;
+  for (const o of orders) {
+    if (o.feed === "tv" && o.state === "pending" && now - o.recv_ts > PENDING_MAX_SEC) {
+      o.state = "cancelled";
+      o.result = "cancel";
+      o.why = "quá 24 giờ chưa có tin khớp Entry";
+      orderEvent(o, "CANCEL", "⛔ Hủy");
+      ch = true;
+    }
+  }
+  for (const [k, q] of knBuffer) {
+    const keep = q.filter((b) => now - b.ts <= KN_BUFFER_SEC);
+    if (keep.length) knBuffer.set(k, keep);
+    else knBuffer.delete(k);
+  }
+  return ch;
+}
+
+/** Nhận 1 tin webhook. Trả thông báo; lỗi thì ném Error. `test` = đánh dấu lệnh test (URL ?test=1). */
+export function addSignal(raw: string, opts: { test?: boolean } = {}): string {
+  const kn = parseKn(raw);
+  if (kn) return handleKn(kn, raw, !!opts.test);
   const s = parseSignal(raw);
   if (s.cmd === "cancel") {                  // hủy lệnh CHỜ gần nhất cùng chỉ báo (+ cùng chiều nếu có)
     const x = [...orders].reverse().find((o) => o.state === "pending" && o.indi === s.indi && (!s.side || o.side === s.side));
@@ -39,7 +179,7 @@ export function addSignal(raw: string): string {
     return `đã hủy lệnh ${x.id}`;
   }
   const o: Order = {
-    id: `${vnStamp()}-${orders.length % 1000}`, indi: s.indi, side: s.side!, tf: s.tf, symbol: s.symbol, test: s.test,
+    id: `${vnStamp()}-${orders.length % 1000}`, indi: s.indi, side: s.side!, tf: s.tf, symbol: s.symbol, test: s.test || !!opts.test,
     entries: s.entries, filled: s.entries.map(() => false), sl: s.sl, tps: s.tps, pip: s.pip,
     recv_ts: Date.now() / 1000, raw: raw.slice(0, 1000), state: "pending", fill_bar_t: null, last_t: null,
     tp_hit: 0, pip50: false, pip100: false, mfe: 0, mae: 0, cur_pip: null, result: null, close_pip: null,
@@ -51,9 +191,9 @@ export function addSignal(raw: string): string {
   return `đã nhận lệnh ${o.id}`;
 }
 
-/** Soi nến M1 cho các lệnh đang chờ/chạy. */
+/** Soi nến M1 cho các lệnh đang chờ/chạy (KHÔNG gồm lệnh theo tin TradingView — lệnh đó chỉ đổi theo tin). */
 async function ordersTick(): Promise<boolean> {
-  const active = orders.filter(isActive);
+  const active = orders.filter((o) => isActive(o) && o.feed !== "tv");
   if (!active.length) return false;
   const tk = await mt5.tick();
   const srvNow = tk.time;
@@ -113,6 +253,7 @@ export function startOrders() {
   let lastSave = 0;
   const run = async () => {
     try {
+      if (expireKn()) save();                              // dọn lệnh theo tin — không cần MT5, MT5 sập vẫn chạy
       const ch = await withTimeout((async () => {
         const synced = await mt5Sync(orders, mt5Status);   // luôn chạy CẢ HAI bước
         const ticked = await ordersTick();

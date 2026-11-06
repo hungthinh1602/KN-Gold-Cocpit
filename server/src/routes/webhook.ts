@@ -17,7 +17,7 @@ webhookRouter.post("/webhook", express.text({ type: "*/*", limit: "20kb" }), asy
   }
   const raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body ?? "");
   try {
-    const msg = addSignal(raw);
+    const msg = addSignal(raw, { test: req.query.test === "1" });   // URL …&test=1 → lệnh test (xóa được bằng nút "Xóa lệnh test")
     webhookStatus.last = { ts: Date.now() / 1000, ok: true, msg };
     res.json({ ok: true, msg });
   } catch (e) {

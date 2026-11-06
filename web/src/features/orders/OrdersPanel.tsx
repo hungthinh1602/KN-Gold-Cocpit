@@ -28,6 +28,20 @@ function Mt5Line({ m }: { m: OrdersData["mt5"] | undefined }) {
   );
 }
 
+/** Tin TradingView gần nhất tới webhook (lệnh theo tin chỉ đổi khi có tin này). */
+function TvLine({ w }: { w: OrdersData["webhook"] | undefined }) {
+  const t = useT();
+  const [lang] = useLang();
+  const last = w?.last;
+  if (!last) return <>📡 TradingView: {t("chưa có tin nào", "no message yet")}</>;
+  return (
+    <>
+      {last.ok ? "📡" : "🔴"} TradingView: {t("tin cuối", "last message")} <b>{new Date(last.ts * 1000).toLocaleTimeString(locale(lang))}</b>
+      {!last.ok && <span className="dn"> · {last.msg}</span>}
+    </>
+  );
+}
+
 function Stat({ v, t, cls }: { v: string | number; t: string; cls?: string }) {
   return <div className="lo-st"><b className={cls}>{v}</b><span>{t}</span></div>;
 }
@@ -63,6 +77,7 @@ export function OrdersPanel({ data, selected, onSelect, onCleared }: {
         <span className="lo-live">{data ? `${all.filter(isActive).length} ${t("lệnh đang theo dõi", all.filter(isActive).length === 1 ? "order tracked" : "orders tracked")} · ${new Date().toLocaleTimeString(locale(lang))}` : "—"}</span>
       </div>
       <div className="lo-mt5"><Mt5Line m={data?.mt5} /></div>
+      <div className="lo-mt5"><TvLine w={data?.webhook} /></div>
       <div className="lo-sel">
         <Segmented options={PERIODS.map((p) => ({ value: p.value, label: lang === "en" ? p.en : p.label }))} value={per} onChange={setPer} />
       </div>
@@ -73,7 +88,7 @@ export function OrdersPanel({ data, selected, onSelect, onCleared }: {
           <div className="lo-empty">
             {all.length
               ? t("Không có lệnh trong khoảng thời gian này.", "No orders in this period.")
-              : t("Chưa có lệnh. Tạo alert TradingView bắn webhook về VPS, lệnh sẽ hiện ở đây và được theo dõi tự động bằng giá MT5 GTC.", "No orders yet. Create a TradingView alert that sends a webhook to the VPS — orders appear here and are tracked automatically with MT5 GTC prices.")}
+              : t("Chưa có lệnh. Tạo alert TradingView bắn webhook về VPS: lệnh hiện ở đây và cập nhật theo từng tin của chỉ báo (Khớp Entry, mốc pip, TP, SL…). Lệnh anh tự đặt trên MT5 vẫn hiện như cũ.", "No orders yet. Create a TradingView alert that sends a webhook to the VPS: orders appear here and update with each indicator message (entry fill, pip milestones, TP, SL…). Your own MT5 orders still show as before.")}
           </div>
         )}
       </div>

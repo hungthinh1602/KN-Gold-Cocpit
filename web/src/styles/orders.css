@@ -30,6 +30,7 @@
 .lo-ev { margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 5px; font-size: .72rem; color: var(--dim); line-height: 1.5; }
 .lo-tag { font-size: .62rem; padding: 0 5px; border-radius: 4px; background: #7c3aed; color: #fff; margin-left: 4px; }
 .lo-tag.mt5 { background: #0284c7; }
+.lo-tag.tv { background: #16a34a; }
 .lo-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: .7rem; color: var(--dim); }
 .lo-empty { color: var(--dim); font-size: .8rem; padding: 14px 4px; line-height: 1.5; }
 

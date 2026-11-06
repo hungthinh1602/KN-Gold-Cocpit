@@ -116,6 +116,8 @@ export interface Order {
   mfe: number; cur_pip: number | null; result: "win" | "loss" | "cancel" | null; close_pip: number | null;
   events: OrderEvent[]; status: string; status_text: string;
   note?: string; note_ts?: number;   // nhật ký lệnh
+  feed?: "tv"; uid?: string;         // lệnh chạy theo TIN TradingView (không theo giá MT5) · khóa "<chỉ báo>|<chiều>|<mã setup>"
+  ms?: number[]; win?: boolean; why?: string;   // mốc pip đã đạt · đã THẮNG · lý do hủy (lệnh feed)
 }
 
 export interface Mt5Status {
@@ -123,4 +125,6 @@ export interface Mt5Status {
   tick: number | null; off: number | null; err: string | null;
 }
 
-export interface OrdersData { orders: Order[]; now: number; mt5: Mt5Status }
+export interface WebhookStatus { last?: { ts: number; ok: boolean; msg: string } | null; err?: string | null }
+
+export interface OrdersData { orders: Order[]; now: number; mt5: Mt5Status; webhook?: WebhookStatus }

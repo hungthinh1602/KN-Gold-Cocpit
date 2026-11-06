@@ -48,4 +48,10 @@ export interface Order {
   _st?: [string, string];            // trạng thái chính của lệnh MT5 (giữ khi có sự kiện sửa SL/TP)
   note?: string;                     // nhật ký: ghi chú của người dùng (lý do vào lệnh, bài học)
   note_ts?: number;                  // lúc sửa ghi chú (giờ thật, epoch giây)
+  feed?: "tv";                       // lệnh chạy THEO TIN TradingView (KHÔNG theo dõi bằng giá MT5)
+  uid?: string;                      // khóa ghép tin: "<chỉ báo>|<chiều>|<mã setup>"
+  ms?: number[];                     // các mốc pip đã đạt (lệnh feed)
+  win?: boolean;                     // đã báo THẮNG (đạt số pip lời)
+  win_pip?: number;                  // số pip tính thắng
+  why?: string;                      // lý do hủy (lệnh feed)
 }

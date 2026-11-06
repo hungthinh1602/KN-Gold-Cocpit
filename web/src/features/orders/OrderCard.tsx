@@ -17,7 +17,9 @@ export function OrderCard({ o, selected, onClick, onNoteSaved }: { o: Order; sel
   const buy = o.side === "BUY";
   const done = o.state === "closed" || o.state === "cancelled";
   const slHit = o.state === "closed" && o.status === "SL";
-  const pip = o.state === "open" ? o.cur_pip : o.state === "closed" && !slHit ? o.close_pip : null;
+  const tv = o.feed === "tv";                                                  // lệnh theo tin TradingView: pip = mốc cao nhất đã báo
+  const topMs = tv && o.ms?.length ? o.ms[o.ms.length - 1] : null;
+  const pip = o.state === "open" ? (tv ? topMs : o.cur_pip) : o.state === "closed" && !slHit ? o.close_pip : null;
   const showProfit = o.profit != null && o.state !== "pending" && !slHit;
   const tps = o.tps || [];
 
@@ -28,6 +30,7 @@ export function OrderCard({ o, selected, onClick, onNoteSaved }: { o: Order; sel
           <span className={"lo-side " + (buy ? "buy" : "sell")}>{o.side}</span> <b>{o.indi}</b>
           {o.tf ? ` · ${o.tf}` : ""}
           {o.test && <span className="lo-tag">test</span>}
+          {tv && <span className="lo-tag tv">#{o.uid?.split("|").pop() ?? "TV"}</span>}
           {o.src === "mt5" && <span className="lo-tag mt5">#{o.ticket}{o.volume ? ` · ${o.volume} lot` : ""}</span>}
         </span>
       </div>
@@ -47,8 +50,18 @@ export function OrderCard({ o, selected, onClick, onNoteSaved }: { o: Order; sel
           </span>
         )}
         <span className="lo-ms">
-          <i className={o.pip50 ? "on" : ""}>50p</i>
-          <i className={o.pip100 ? "on" : ""}>100p</i>
+          {tv ? (
+            <>
+              {(o.ms?.length ?? 0) > 4 && <i>…</i>}
+              {(o.ms ?? []).slice(-4).map((m) => <i key={m} className="on">+{m}p</i>)}
+            </>
+          ) : (
+            <>
+              <i className={o.pip50 ? "on" : ""}>50p</i>
+              <i className={o.pip100 ? "on" : ""}>100p</i>
+            </>
+          )}
+          {tv && <i className={o.win ? "on" : ""}>{t("THẮNG", "WIN")}</i>}
           {tps.map((_, i) => <i key={i} className={o.tp_hit > i ? "on" : ""}>TP{tps.length > 1 ? i + 1 : ""}</i>)}
         </span>
       </div>
